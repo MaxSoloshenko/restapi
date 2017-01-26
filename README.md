@@ -35,6 +35,7 @@ json file with name *.json
   "Tests": [
   ]
 }```
+
 Where 
 
 * Microservice is a name of service that is mapped with url and map. If name is not mapped with any name in file APIUrls.properties then [base] section will be used.
@@ -64,13 +65,14 @@ Where
 }```
 
 Where
-*Name is a name of case
-*Method is on of GET, POST, DELETE, PUT
-*URL is a full endpoint url or part like "/project/add"
-*Params is array of params for request
-*Timeout is brake in seconds. It will be performed before run case
-*Body is a request body as json object
-*Expectations is array of expected results
+
+* Name is a name of case
+* Method is on of GET, POST, DELETE, PUT
+* URL is a full endpoint url or part like "/project/add"
+* Params is array of params for request
+* Timeout is brake in seconds. It will be performed before run case
+* Body is a request body as json object
+* Expectations is array of expected results
 
 ###What expectations are there?
 Expectation of status
@@ -110,7 +112,9 @@ Expectation of NULL object
   "type": "NULL",
   "xpath": "$..[?(@.projectId==%projectId)].active"
 }```
+
 Expectation the array is bigger than
+
 ```{
   "type": "XSIZEGREATER",
   "xpath": "$.metadataResponseBean[*]",
