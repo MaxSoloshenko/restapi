@@ -1,0 +1,27 @@
+{
+  "Microservice": "some-service-name",
+  "Tags":["tag"],
+  "Tests": [
+    {
+      "Name": "Get user list",
+      "Method": "GET",
+      "URL": "posts",
+      "Expectations": [
+        {
+          "type": "STATUS",
+          "value": 200
+        },
+        {
+          "type": "XPATH",
+          "xpath": "$.[1].id",
+          "value": "2"
+        },
+        {
+          "type": "XPATH",
+          "xpath": "$.[4].title",
+          "value": "nesciunt quas odio"
+        }
+      ]
+    }
+  ]
+}

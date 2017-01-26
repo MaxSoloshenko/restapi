@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suite name="API Gateway" data-provider-thread-count="5">
+
+    <listeners>
+        <listener class-name="listeners.FailedListener" />
+    </listeners>
+
+    <test name="Tests">
+        <classes>
+            <class name="com.javelin.tests.api.tests.DataDrivenParallelTests" />
+        </classes>
+    </test>
+</suite>

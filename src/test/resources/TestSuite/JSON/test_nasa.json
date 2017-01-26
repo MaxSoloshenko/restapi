@@ -1,0 +1,26 @@
+{
+  "Microservice": "nasa",
+  "Tags":["tag"],
+  "Variables":{
+    "userName": "Max",
+    "userJob": "QA"
+  },
+  "Tests": [
+    {
+      "Name": "Get a List of New Releases",
+      "Method": "GET",
+      "URL": "/planetary/apod?api_key=%apiKey",
+      "Expectations": [
+        {
+          "type": "STATUS",
+          "value": 200
+        },
+        {
+          "type": "XPATH",
+          "xpath": "$.title",
+          "value": "GOES-16: Moon over Planet Earth"
+        }
+      ]
+    }
+  ]
+}

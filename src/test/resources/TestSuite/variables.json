@@ -1,0 +1,6 @@
+{
+  "Environment": "Dev",
+  "Variables": {
+    "apiKey" : "DEMO_KEY"
+  }
+}

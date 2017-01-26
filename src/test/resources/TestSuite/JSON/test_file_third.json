@@ -1,0 +1,63 @@
+{
+  "Microservice": "json-api",
+  "Tags":["tag"],
+  "Variables":{
+    "userName": "Max",
+    "userJob": "QA"
+  },
+  "Tests": [
+    {
+      "Name": "Get country info",
+      "Method": "GET",
+      "URL": "/users",
+      "Expectations": [
+        {
+          "type": "STATUS",
+          "value": 200
+        },
+        {
+          "type": "XPATH",
+          "xpath": "$.page",
+          "value": "1"
+        }
+      ]
+    },
+    {
+      "Name": "Get country info",
+      "Method": "POST",
+      "URL": "/register",
+      "Body":{
+        "email": "%userName",
+        "password": "%userJob"
+      },
+      "Expectations": [
+        {
+          "type": "STATUS",
+          "value": 201
+        },
+        {
+          "type": "XVARIABLE",
+          "xpath": "$.token",
+          "value": "token"
+        }
+      ]
+    },
+    {
+      "Enabled":"false",
+      "Name": "Get User info",
+      "Method": "GET",
+      "URL": "/users/%token",
+      "Expectations": [
+        {
+          "type": "STATUS",
+          "value": 200
+        },
+        {
+          "type": "XPATH",
+          "xpath": "$.data.first_name",
+          "value": "Max"
+        }
+      ]
+    }
+  ]
+}

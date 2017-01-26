@@ -1,0 +1,55 @@
+group 'com.javelin.api.rest.json'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'idea'
+
+sourceCompatibility = 1.7
+
+repositories {
+    mavenCentral()
+}
+
+test{
+    useTestNG(){
+        include '**/*Component*'
+        useDefaultListeners = true
+    }
+    testLogging {
+        events "passed", "skipped", "failed", "standardOut", "standardError"
+    }
+    reports{
+        junitXml.enabled = true
+        html.enabled = true
+    }
+}
+
+task ddtest(type: Test){
+    useTestNG(){
+        include '**/DataDrivenTest*'
+        useDefaultListeners = true
+    }
+    testLogging {
+        events "passed", "skipped", "failed", "standardOut", "standardError"
+    }
+    reports{
+        junitXml.enabled = true
+        html.enabled = true
+    }
+}
+
+dependencies {
+	testCompile (
+            ['org.testng:testng:6.8.8'],
+            ['com.jayway.restassured:rest-assured:2.8.0'],
+            ['com.jayway.restassured:json-schema-validator:2.8.0'],
+            ['org.ini4j:ini4j:0.5.1'],
+            ['com.googlecode.json-simple:json-simple:1.1.1'],
+            ['org.springframework:spring-web:3.0.2.RELEASE'],
+            ['com.jayway.jsonpath:json-path:2.2.0']
+    )
+
+    compile (
+            ['org.testng:testng:6.8.8']
+    )
+}
