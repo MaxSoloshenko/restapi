@@ -2,8 +2,8 @@
 
 ##Requirements
 To be able to operate with framework your system should have next tools:
-java 1.8 and above http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
-gradle https://gradle.org/gradle-download/
+* java 1.8 and above http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
+* gradle https://gradle.org/gradle-download/
 
 ##FAQ
 ###How to run test cases?
