@@ -7,7 +7,7 @@
 
     <test name="Tests">
         <classes>
-            <class name="com.javelin.tests.api.tests.DataDrivenParallelTests" />
+            <class name="com.rest.tests.api.tests.DataDrivenParallelTests" />
         </classes>
     </test>
 </suite>

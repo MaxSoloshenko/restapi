@@ -10,18 +10,34 @@ gradle https://gradle.org/gradle-download/
 command line: gradle ddtest
 
 Couple system's variables should be established in a system prior:
-* JAVELIN_TEST_TAGS (smoke, users)
-* JAVELIN_API_URL (http://some-endpoint.com)
+* REST_APP_TAGS (smoke, users)
+* REST_APP_API_URL (http://some-endpoint.com)
+* REST_APP_API_PORT (80)
 
 ###Where test cases have to be located?
 All cases have to be located in framework resource folder test\resources\TestSuite\
 
-Subfolders are legal.
+Sub-folders are welcome.
 
 ###Is there SetUp and TearDown functionality?
+There are two levels of SetUp/TearDown functionality: global and local
+
+####Global SetUp/TearDown
+Cases will be run once before and after ALL cases.
+
 SetUp cases should be located under folder test\resources\TestSuite\_SetUp
 
+TearDown cases should be in folder test\resources\TestSuite\_TearDown
+
 All variables are created in that case are Global.
+
+####Local SetUp/TearDown
+Sometimes we need to run one/few cases before our test cases. Then we have options SetUp/TearDown in our .json files.
+Simple define this sections in your test .json file as
+```"SetUp":[]``` and ```"TearDown":[]```
+
+Inside those sections tests are expected. See question "What is a template for test case?"
+
 
 ###What is a file format for cases?
 json file with name *.json
@@ -33,6 +49,10 @@ json file with name *.json
     "variable1":""
  },
   "Tests": [
+  ],
+  "SetUp": [
+  ],
+  "TearDown": [
   ]
 }```
 
@@ -52,6 +72,8 @@ Where
     "Authorization": ""
  },
   "Timeout": 1,
+  "Loop": 1,
+  "LoopTimeout": 1,
   "Body": {
     "projectConfigurations": []
   },
@@ -70,7 +92,9 @@ Where
 * Method is on of GET, POST, DELETE, PUT
 * URL is a full endpoint url or part like "/project/add"
 * Params is array of params for request
-* Timeout is brake in seconds. It will be performed before run case
+* Timeout is an idle in seconds. It will wait that time before run case
+* Loop is max number of repetitions for this request. It will be repeated until all expectations are done
+* LoopTimeout is an idle in seconds between repetitions
 * Body is a request body as json object
 * Expectations is array of expected results
 
@@ -109,7 +133,7 @@ Expectation the array contains
 Expectation of NULL object
 
 ```{
-  "type": "NULL",
+  "type": "XNULL",
   "xpath": "$..[?(@.projectId==%projectId)].active"
 }```
 
@@ -119,6 +143,14 @@ Expectation the array is bigger than
   "type": "XSIZEGREATER",
   "xpath": "$.metadataResponseBean[*]",
   "value": 0
+}```
+
+Expectation the regex in body
+
+```{
+  "type": "REGEXEQUAL",
+  "regex": "([a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})",
+  "value": "somevalue"
 }```
 
 ###How to use variables in tests?
@@ -141,7 +173,15 @@ Set variable groupId with dynamic value
   "value": "groupId"
 }```
 
-Use variables
+Variable as regex in body
+
+```{
+  "type": "REGEXEQUAL",
+  "regex": "([a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})",
+  "value": "regId"
+}```
+
+####Use variables
 
 Variable can be used in URL, Params, Body, Expectations. In next case we can see variables: projectId, token, login
 
@@ -165,4 +205,3 @@ Variable can be used in URL, Params, Body, Expectations. In next case we can see
 ###What macros are there for variables?
 * {GUID} - will generate guid without "-"
 * {DATE(yyyy-MM-dd'T'HH:mm:ss.SSS'Z')} - will generate date in given format
-* {emailh} - will generate random row of symbols with length 25

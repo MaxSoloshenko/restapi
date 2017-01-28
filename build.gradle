@@ -1,4 +1,4 @@
-group 'com.javelin.api.rest.json'
+group 'com.rest.api.rest.json'
 version '1.0-SNAPSHOT'
 
 apply plugin: 'java'
