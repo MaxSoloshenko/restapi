@@ -17,6 +17,7 @@ public class Tools {
 
     public static void printFixLineString(String text, String pattern){
 
+        System.out.println();
         int size = text.length();
         int p = (120 - size - 2);
         if (p > 0)

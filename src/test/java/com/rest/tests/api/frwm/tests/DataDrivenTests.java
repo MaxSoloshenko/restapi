@@ -1,5 +1,7 @@
 package com.rest.tests.api.frwm.tests;
 
+import com.jayway.jsonpath.Configuration;
+import com.rest.tests.api.frwm.listeners.ResultListeners;
 import com.rest.tests.api.frwm.request.RequestFactory;
 import com.rest.tests.api.frwm.response.ExpectedFactory;
 import com.rest.tests.api.frwm.response.IExpectationValidator;
@@ -10,12 +12,13 @@ import com.rest.tests.api.frwm.settings.TestParser;
 import com.rest.tests.api.frwm.settings.Tools;
 import com.rest.tests.api.frwm.testcase.Testcase;
 import com.rest.tests.api.frwm.testcase.TestcaseType;
-import com.jayway.jsonpath.Configuration;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONObject;
 import org.junit.Assert;
+import org.testng.ITestResult;
+import org.testng.Reporter;
 import org.testng.annotations.*;
 
 import java.io.File;
@@ -30,6 +33,7 @@ import static org.junit.Assert.assertNotNull;
 /**
  * Created by msolosh on 3/25/2016.
  */
+@Listeners(ResultListeners.class)
 public class DataDrivenTests {
 
     ArrayList<Testcase> testcases = new ArrayList<Testcase>();
@@ -38,9 +42,11 @@ public class DataDrivenTests {
     private HashMap<String, ArrayList<Testcase>> test_set_tear = new HashMap<String, ArrayList<Testcase>>();
     private int caseNumber = 0;
     private String filename = "";
+    private boolean success = true;
+    private String skipName = "";
 
     @BeforeClass(alwaysRun = true)
-    public void setUp() throws IOException {
+    public void setUp() throws Exception {
 
         api = new Settings();
         getVariables();
@@ -82,7 +88,6 @@ public class DataDrivenTests {
                 setp.add(test);
                 test_set_tear.put(name, setp);
             }
-
         }
     }
 
@@ -105,33 +110,52 @@ public class DataDrivenTests {
     public void setup() throws Exception {
 
         Testcase test = testcases.get(caseNumber);
-        if (!filename.equalsIgnoreCase(test.getNAME().substring(0, test.getNAME().lastIndexOf(":"))))
+        caseNumber++;
+        if (success)
         {
-            filename = test.getNAME().substring(0, test.getNAME().lastIndexOf(":"));
+            success = false;
 
-
-            ArrayList<Testcase> arr = test_set_tear.get(filename);
-
-            for (int k = 0; k < arr.size(); k++)
+            if (!filename.equalsIgnoreCase(test.getNAME().substring(0, test.getNAME().lastIndexOf(":"))))
             {
-                Testcase tst = arr.get(k);
-                if (tst.getType().equals(TestcaseType.SETUP))
-                {
-                    ArrayList<Testcase> list = new ArrayList<Testcase>();
-                    list.add(tst);
-                    Tools.printFixLineString("_SetUp", "▄");
-                    setupCases(list);
-                    Tools.printFixLineString("", "*");
+                filename = test.getNAME().substring(0, test.getNAME().lastIndexOf(":"));
+
+
+                ArrayList<Testcase> arr = test_set_tear.get(filename);
+
+                if (arr != null) {
+                    for (int k = 0; k < arr.size(); k++)
+                    {
+                        Testcase tst = arr.get(k);
+                        if (tst.getType().equals(TestcaseType.SETUP))
+                        {
+                            ArrayList<Testcase> list = new ArrayList<Testcase>();
+                            list.add(tst);
+                            Tools.printFixLineString("_SetUp", "▄");
+                            try {
+                                setupCases(list);
+                            } catch (AssertionError e)
+                            {
+                                e.printStackTrace();
+                                skipName = filename;
+                                break;
+                            }
+
+                            Tools.printFixLineString("", "*");
+                        }
+                    }
                 }
             }
+
+            success = true;
         }
-        caseNumber++;
+
     }
 
     @AfterMethod(alwaysRun = true)
     public void teardown() throws Exception {
 
         Testcase test;
+
         try
         {
             test = testcases.get(caseNumber);
@@ -141,18 +165,21 @@ public class DataDrivenTests {
         }
         if (!filename.equalsIgnoreCase(test.getNAME().substring(0, test.getNAME().lastIndexOf(":"))) || testcases.size() < caseNumber + 1)
         {
+            success = true;
             ArrayList<Testcase> arr = test_set_tear.get(filename);
 
-            for (int k = 0; k < arr.size(); k++)
-            {
-                Testcase tst = arr.get(k);
-                if (tst.getType().equals(TestcaseType.TEARDOWN))
+            if (arr != null) {
+                for (int k = 0; k < arr.size(); k++)
                 {
-                    ArrayList<Testcase> list = new ArrayList<Testcase>();
-                    list.add(tst);
-                    Tools.printFixLineString("_TearDown", "▄");
-                    setupCases(list);
-                    Tools.printFixLineString("", "*");
+                    Testcase tst = arr.get(k);
+                    if (tst.getType().equals(TestcaseType.TEARDOWN))
+                    {
+                        ArrayList<Testcase> list = new ArrayList<Testcase>();
+                        list.add(tst);
+                        Tools.printFixLineString("_TearDown", "▄");
+                        setupCases(list);
+                        Tools.printFixLineString("", "*");
+                    }
                 }
             }
         }
@@ -163,8 +190,6 @@ public class DataDrivenTests {
 
         System.out.println();
 
-
-
         Object[][] testList = new Object[testcases.size()][2];
         for (int k = 0; k < testcases.size(); k++) {
             testList[k][1] = testcases.get(k);
@@ -174,37 +199,15 @@ public class DataDrivenTests {
         return testList;
     }
 
-    private Testcase replaceVaraibles(String file, Testcase test){
-        int ind = test.getNAME().lastIndexOf(":");
-        file = file.substring(0, ind);
-        test.setURL(Tools.replaceVariables(test.getURL(), file, variables));
-        test.setBODY(Tools.replaceVariables(test.getBODY(), file, variables));
-        test.setPARAMS(Tools.replaceVariables(test.getPARAMS(), file, variables));
-        test.setBOUNDARY(Tools.replaceVariables(test.getBOUNDARY(), file, variables));
-
-        Tools.printFixLineString(test.getNAME(), "-");
-        System.out.println("File: " + file);
-        System.out.println("Test: " + test.getNAME());
-        System.out.println("URL: " + test.getURL());
-        System.out.println("METHOD: " + test.getMETHOD());
-        System.out.println("BODY: " + test.getBODY());
-        System.out.println("PARAMS: ");
-        System.out.println(test.getPARAMS());
-
-        if (test.getBOUNDARY() != null )
-        {
-            System.out.println("BOUNDARY: ");
-            System.out.println(test.getBOUNDARY());
-        }
-
-        System.out.println();
-
-        return test;
-    }
-
-
     @Test(dataProvider = "REST")
     public void RestAPI(String file, Testcase test) throws Exception {
+
+        if (file.substring(0, file.lastIndexOf(":")).equalsIgnoreCase(skipName))
+        {
+            Reporter.getCurrentTestResult().setAttribute("result", ITestResult.SKIP);
+            return;
+        }
+
 
         Thread.sleep(test.getTimeout());
 
@@ -278,7 +281,7 @@ public class DataDrivenTests {
                     }
                     else
                     {
-//                        System.out.println();
+                        System.out.println();
                     }
                     System.out.println(" - DONE");
                 }
@@ -298,6 +301,34 @@ public class DataDrivenTests {
             HttpEntity entity = response.getEntity();
             EntityUtils.consume(entity);
         }
+    }
+
+    private Testcase replaceVaraibles(String file, Testcase test){
+        int ind = test.getNAME().lastIndexOf(":");
+        file = file.substring(0, ind);
+        test.setURL(Tools.replaceVariables(test.getURL(), file, variables));
+        test.setBODY(Tools.replaceVariables(test.getBODY(), file, variables));
+        test.setPARAMS(Tools.replaceVariables(test.getPARAMS(), file, variables));
+        test.setBOUNDARY(Tools.replaceVariables(test.getBOUNDARY(), file, variables));
+
+        Tools.printFixLineString(test.getNAME(), "-");
+        System.out.println("File: " + file);
+        System.out.println("Test: " + test.getNAME());
+        System.out.println("URL: " + test.getURL());
+        System.out.println("METHOD: " + test.getMETHOD());
+        System.out.println("BODY: " + test.getBODY());
+        System.out.println("PARAMS: ");
+        System.out.println(test.getPARAMS());
+
+        if (test.getBOUNDARY() != null )
+        {
+            System.out.println("BOUNDARY: ");
+            System.out.println(test.getBOUNDARY());
+        }
+
+        System.out.println();
+
+        return test;
     }
 
     private String setupCases(ArrayList<Testcase> testcases){

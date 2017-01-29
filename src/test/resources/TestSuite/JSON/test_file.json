@@ -22,6 +22,27 @@
           "value": "nesciunt quas odio"
         }
       ]
+    },
+    {
+      "Name": "setup",
+      "Method": "GET",
+      "URL": "posts",
+      "Expectations": [
+        {
+          "type": "STATUS",
+          "value": 201
+        },
+        {
+          "type": "XPATH",
+          "xpath": "$.[1].id",
+          "value": "2"
+        },
+        {
+          "type": "XPATH",
+          "xpath": "$.[4].title",
+          "value": "nesciunt quas odio"
+        }
+      ]
     }
   ],
   "TearDown":[
@@ -49,7 +70,28 @@
   ],
   "Tests": [
     {
-      "Name": "Get user list",
+      "Name": "Get user list 1",
+      "Method": "GET",
+      "URL": "posts",
+      "Expectations": [
+        {
+          "type": "STATUS",
+          "value": 200
+        },
+        {
+          "type": "XPATH",
+          "xpath": "$.[1].id",
+          "value": "2"
+        },
+        {
+          "type": "XPATH",
+          "xpath": "$.[4].title",
+          "value": "nesciunt quas odio"
+        }
+      ]
+    },
+    {
+      "Name": "Get user list 2",
       "Method": "GET",
       "URL": "posts",
       "Expectations": [
