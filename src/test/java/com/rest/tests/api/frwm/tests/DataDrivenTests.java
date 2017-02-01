@@ -208,7 +208,6 @@ public class DataDrivenTests {
             return;
         }
 
-
         Thread.sleep(test.getTimeout());
 
         Tools.printFixLineString("TESTCASE", "-");
@@ -339,80 +338,92 @@ public class DataDrivenTests {
             {
                 Testcase test = testcases.get(k);
 
-                Thread.sleep(test.getTimeout());
+                int loop = test.getLoop();
 
-                if (test.getBOUNDARY() != null )
-                {
-                    System.out.println("BOUNDARY: ");
-                    System.out.println(test.getBOUNDARY());
-                }
+                while (loop > 0 ) {
+                    --loop;
 
+                    Thread.sleep(test.getTimeout());
 
-                String test_name = test.getNAME();
-                String name = test_name.substring(0,test_name.lastIndexOf(":"));
-
-                test = replaceVaraibles(name, test);
-
-                HttpResponse response = RequestFactory.getRequest(test).sendRequest();
-
-                PrintHeaders(response);
-                String body = null;
-                Object document = null;
-                if (response.getEntity() != null) {
-                    body = EntityUtils.toString(response.getEntity());
-                    document = Configuration.defaultConfiguration().jsonProvider().parse(body);
-                }
-
-                int status = response.getStatusLine().getStatusCode();
-                Tools.printFixLineString("RESPONSE", "=");
-                System.out.println(String.format("STATUS is %d", status));
-                System.out.print("BODY is ");
-                if (body != null) {
-                    if (body.length() > 10000) {
-                        System.out.println(body.substring(0, 10000));
-                    } else {
-                        System.out.println(body);
-                    }
-                }
-
-                Tools.printFixLineString("", "=");
-
-                for (JSONObject expect : test.getEXPECTATION()) {
-
-                    if (!expect.get("type").equals("STATUS")) {
-                        int ind = test.getNAME().lastIndexOf(":");
-                        name = name.substring(0, ind);
-                        expect = Tools.replaceVariables(expect, name, variables);
+                    if (test.getBOUNDARY() != null) {
+                        System.out.println("BOUNDARY: ");
+                        System.out.println(test.getBOUNDARY());
                     }
 
-                    System.out.print(expect);
-                    HashMap testvar = new HashMap();
-                    IExpectationValidator expectedValidator = ExpectedFactory.getExpectedObject(expect);
-                    if (expectedValidator instanceof StatusValidation)
-                    {
-                        expectedValidator.validation(status);
-                    }
-                    else if (expectedValidator != null && document != null)
-                    {
 
-                        testvar = expectedValidator.validation(document);
-                        if ((testvar != null) && (variables.get("all").size() > 0))
-                        {
-                            HashMap<String, String> tmpMap = variables.get("all");
-                            Set<String> keys = testvar.keySet();
-                            for (String key : keys)
-                            {
-                                String value = (String)testvar.get(key);;
-                                tmpMap.put(key, value);
-                            }
-                            variables.put("all", tmpMap);
+                    String test_name = test.getNAME();
+                    String name = test_name.substring(0, test_name.lastIndexOf(":"));
+
+                    test = replaceVaraibles(name, test);
+
+                    HttpResponse response = RequestFactory.getRequest(test).sendRequest();
+
+                    PrintHeaders(response);
+                    String body = null;
+                    Object document = null;
+                    if (response.getEntity() != null) {
+                        body = EntityUtils.toString(response.getEntity());
+                        document = Configuration.defaultConfiguration().jsonProvider().parse(body);
+                    }
+
+                    int status = response.getStatusLine().getStatusCode();
+                    Tools.printFixLineString("RESPONSE", "=");
+                    System.out.println(String.format("STATUS is %d", status));
+                    System.out.print("BODY is ");
+                    if (body != null) {
+                        if (body.length() > 10000) {
+                            System.out.println(body.substring(0, 10000));
+                        } else {
+                            System.out.println(body);
                         }
                     }
-                    else
-                    {
-                        System.out.println();
+
+                    Tools.printFixLineString("", "=");
+
+                    try {
+                        for (JSONObject expect : test.getEXPECTATION()) {
+
+                            if (!expect.get("type").equals("STATUS")) {
+                                int ind = test.getNAME().lastIndexOf(":");
+                                name = name.substring(0, ind);
+                                expect = Tools.replaceVariables(expect, name, variables);
+                            }
+
+                            System.out.print(expect);
+                            HashMap testvar = new HashMap();
+                            IExpectationValidator expectedValidator = ExpectedFactory.getExpectedObject(expect);
+                            if (expectedValidator instanceof StatusValidation) {
+                                expectedValidator.validation(status);
+                            } else if (expectedValidator != null && document != null) {
+
+                                testvar = expectedValidator.validation(document);
+                                if ((testvar != null) && (variables.get("all").size() > 0)) {
+                                    HashMap<String, String> tmpMap = variables.get("all");
+                                    Set<String> keys = testvar.keySet();
+                                    for (String key : keys) {
+                                        String value = (String) testvar.get(key);
+                                        ;
+                                        tmpMap.put(key, value);
+                                    }
+                                    variables.put("all", tmpMap);
+                                }
+                            } else {
+                                System.out.println();
+                            }
+                            System.out.println(" - DONE");
+                        }
+                        break;
+                    } catch (Throwable t) {
+                        if ((test.getLoop() > 1) && (loop > 0)){
+                            System.out.println();
+                            System.out.println(String.format("%s more tries remain to get result.", loop));
+                        }
+                        else {
+                            Assert.fail(t.getMessage());
+                        }
+
+                        Thread.sleep(test.getLoopTimeout()*1000);
                     }
-                    System.out.println(" - DONE");
                 }
             }
         } catch (Exception e) {
