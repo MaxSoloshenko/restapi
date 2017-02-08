@@ -177,7 +177,11 @@ public class DataDrivenTests {
                         ArrayList<Testcase> list = new ArrayList<Testcase>();
                         list.add(tst);
                         Tools.printFixLineString("_TearDown", "▄");
-                        setupCases(list);
+                        try {
+                            setupCases(list);
+                        } catch (Throwable t) {
+                            t.printStackTrace();
+                        }
                         Tools.printFixLineString("", "*");
                     }
                 }

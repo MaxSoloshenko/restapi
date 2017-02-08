@@ -98,8 +98,10 @@ public class Tools {
 
         HashMap<String, String> map = variables.get(name);
         ArrayList<HashMap<String, String>> list = new ArrayList<>();
+        if (map != null)
+            list.add(map);
         list.add(variables.get("all"));
-        list.add(map);
+
 
         for(Iterator iter = expect.keySet().iterator(); iter.hasNext();) {
             String key = (String) iter.next();
