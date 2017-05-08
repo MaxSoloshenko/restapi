@@ -3,6 +3,7 @@ package com.rest.tests.api.frwm.request;
 import com.rest.tests.api.frwm.testcase.Testcase;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
@@ -95,11 +96,12 @@ public class Post implements IRequest {
                 }
                 post.setEntity(entity.build());
             }
-            else
-            {
-                post.setHeader("Content-Type", "application/json");
-            }
-            post.setHeader("Accept", "application/json, text/plain, */*");
+//            else
+//            {
+//                post.setHeader("Content-Type", "application/json");
+//            }
+            post = (HttpPost) Tools.setHeaders(post, test.getHeaders());
+//            post.setHeader("Accept", "application/json, text/plain, */*");
 
             if (test.getBODY() != null)
             {

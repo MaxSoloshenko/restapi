@@ -1,12 +1,13 @@
-package com.rest.tests.api.frwm.response.looking;
+package com.rest.tests.api.frwm.response.looking.json;
 
 import com.jayway.jsonpath.JsonPath;
+import com.rest.tests.api.frwm.response.looking.ILookingObject;
 import net.minidev.json.JSONArray;
 
 /**
  * Created by msolosh on 3/29/2016.
  */
-public class LookingForArray implements ILookingObject{
+public class LookingForArray implements ILookingObject {
 
     private String type = "Array";
     private JSONArray detected;

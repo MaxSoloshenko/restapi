@@ -1,6 +1,7 @@
-package com.rest.tests.api.frwm.response.looking;
+package com.rest.tests.api.frwm.response.looking.json;
 
 import com.jayway.jsonpath.JsonPath;
+import com.rest.tests.api.frwm.response.looking.ILookingObject;
 import net.minidev.json.JSONArray;
 import org.json.simple.JSONObject;
 

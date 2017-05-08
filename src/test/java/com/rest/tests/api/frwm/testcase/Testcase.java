@@ -4,6 +4,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Created by msolosh on 3/25/2016.
@@ -23,6 +24,15 @@ abstract public class Testcase implements ITestCase{
     private int Loop = 1;
     private long LoopTimeout = 0;
     private TestcaseType Type;
+    private HashMap<?, ?> Headers;
+
+    public HashMap<?, ?> getHeaders() {
+        return Headers;
+    }
+
+    public void setHeaders(HashMap<?, ?> Headers) {
+        this.Headers = Headers;
+    }
 
     public TestcaseType getType() {
         return Type;

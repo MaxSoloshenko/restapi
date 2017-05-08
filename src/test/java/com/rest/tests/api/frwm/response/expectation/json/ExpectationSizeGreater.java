@@ -1,5 +1,6 @@
-package com.rest.tests.api.frwm.response.expectation;
+package com.rest.tests.api.frwm.response.expectation.json;
 
+import com.rest.tests.api.frwm.response.expectation.IExpectation;
 import com.rest.tests.api.frwm.response.looking.ILookingObject;
 import net.minidev.json.JSONArray;
 
@@ -9,7 +10,7 @@ import static org.junit.Assert.assertThat;
 /**
  * Created by msolosh on 3/29/2016.
  */
-public class ExpectationSizeGreater implements IExpectation{
+public class ExpectationSizeGreater implements IExpectation {
 
     private int expected;
 

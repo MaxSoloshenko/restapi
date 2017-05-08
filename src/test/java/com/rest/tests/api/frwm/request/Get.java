@@ -6,6 +6,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.simple.JSONObject;
+import com.rest.tests.api.frwm.request.Tools;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -28,8 +29,8 @@ public class Get implements IRequest{
             HttpClient httpclient = HttpClientBuilder.create().useSystemProperties().build();
             HttpGet getRequest = new HttpGet(test.getURL());
 
-            getRequest.setHeader("Accept", "application/json");
-            getRequest.setHeader("Content-Type", "application/json");
+            getRequest = (HttpGet) Tools.setHeaders(getRequest, test.getHeaders());
+
             if (test.getPARAMS() != null) {
 
                 JSONObject params = test.getPARAMS();

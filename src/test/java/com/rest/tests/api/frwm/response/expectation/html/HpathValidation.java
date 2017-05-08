@@ -1,8 +1,10 @@
-package com.rest.tests.api.frwm.response;
+package com.rest.tests.api.frwm.response.expectation.html;
 
-import com.rest.tests.api.frwm.response.expectation.*;
+import com.rest.tests.api.frwm.response.IExpectationValidator;
+import com.rest.tests.api.frwm.response.expectation.IExpectation;
+import com.rest.tests.api.frwm.response.expectation.html.*;
 import com.rest.tests.api.frwm.response.looking.ILookingObject;
-import com.rest.tests.api.frwm.response.looking.LookingFactory;
+import com.rest.tests.api.frwm.response.looking.html.LookingFactory;
 import junit.framework.Assert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -16,13 +18,13 @@ import static org.testng.Assert.assertTrue;
 /**
  * Created by msolosh on 3/28/2016.
  */
-public class XpathValidation implements IExpectationValidator{
+public class HpathValidation implements IExpectationValidator {
 
     private String xpath;
     private String expected;
     private String type;
 
-    public XpathValidation(JSONObject expect) {
+    public HpathValidation(JSONObject expect) {
         xpath = (String)expect.get("xpath");
         type = (String)expect.get("type");
         if (expect.get("value") instanceof String)
@@ -44,36 +46,34 @@ public class XpathValidation implements IExpectationValidator{
     private void validation(ILookingObject look) {
         IExpectation expect = null;
 
-        if (type.equalsIgnoreCase("XSIZE")) {
+        if (type.equalsIgnoreCase("hXSIZE")) {
             expect = new ExpectationSize(expected);
-        } else if (type.equalsIgnoreCase("XCONTAINS")) {
+        }
+        else if (type.equalsIgnoreCase("hXCONTAINS")) {
             expect = new ExpectationContains(expected);
-        } else if (type.equalsIgnoreCase("XEQUAL")) {
+        }
+        else if (type.equalsIgnoreCase("hXEQUAL")) {
             expect = new ExpectationEqual(expected);
-        } else if (type.equalsIgnoreCase("XPATH")) {
-            expect = new ExpectationString(expected);
-        } else if (type.equalsIgnoreCase("XINTEGER")) {
+        }
+        else if (type.equalsIgnoreCase("hXINTEGER")) {
             expect = new ExpectationInteger(expected);
         }
-        else if (type.equalsIgnoreCase("XNULL")) {
+        else if (type.equalsIgnoreCase("hXNULL")) {
             expect = new ExpectationNull();
         }
-        else if (type.equalsIgnoreCase("XSIZELESS")) {
+        else if (type.equalsIgnoreCase("hXPATH")) {
+            expect = new ExpectationString(expected);
+        }
+        else if (type.equalsIgnoreCase("hXSIZELESS")) {
             expect = new ExpectationSizeLess(expected);
         }
-        else if (type.equalsIgnoreCase("XGREATER") || type.equalsIgnoreCase("XSIZEGREATER")) {
+        else if (type.equalsIgnoreCase("hXGREATER") || type.equalsIgnoreCase("hXSIZEGREATER")) {
             expect = new ExpectationSizeGreater(expected);
-        } else {
-            assertTrue(false, String.format("Unknown expectation '%s'\n" +
-                    "Known expectations:\n" +
-                    "'size()'\n" +
-                    "'contains()'\n" +
-                    "'equal()'\n" +
-                    "String value\n" +
-                    "Integer value\n" +
-                    "sizegreaterthan()\n" +
-                    "sizelessthan()", expected));
         }
+        else {
+            assertTrue(false, String.format("Unknown jexpectation '%s'"));
+        }
+
         if ((look != null) || (look == null && expect instanceof ExpectationNull))
             expect.validate(look);
         else
@@ -87,10 +87,9 @@ public class XpathValidation implements IExpectationValidator{
 
         ILookingObject detectedObject = LookingFactory.getLookingNode(response, xpath);
 
-        if (!type.equalsIgnoreCase("xnull"))
+        if (!type.equalsIgnoreCase("hxnull"))
             Assert.assertNotNull("Expected xpath='" + xpath + "' not found", detectedObject);
-
-        if (!type.equalsIgnoreCase("XVARIABLE")) {
+        if (!type.equalsIgnoreCase("hXVARIABLE")) {
             validation(detectedObject);
             return null;
         }

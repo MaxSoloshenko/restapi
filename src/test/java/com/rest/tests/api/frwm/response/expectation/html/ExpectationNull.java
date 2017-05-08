@@ -1,7 +1,8 @@
-package com.rest.tests.api.frwm.response.expectation;
+package com.rest.tests.api.frwm.response.expectation.html;
 
+import com.rest.tests.api.frwm.response.expectation.IExpectation;
 import com.rest.tests.api.frwm.response.looking.ILookingObject;
-import com.rest.tests.api.frwm.response.looking.LookingForArray;
+import com.rest.tests.api.frwm.response.looking.json.LookingForArray;
 import net.minidev.json.JSONArray;
 
 import static org.testng.Assert.assertEquals;
@@ -16,8 +17,8 @@ public class ExpectationNull implements IExpectation {
     public void validate(ILookingObject detected) {
         if (detected instanceof LookingForArray)
         {
-            JSONArray arr = (JSONArray)detected.getDetected();
-            assertEquals(0, arr.size(), "Object is not empty");
+            Object[] arr = (Object[])detected.getDetected();
+            assertEquals(0, arr.length, "Object is not empty");
         }
         else
         {

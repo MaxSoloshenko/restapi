@@ -37,7 +37,7 @@ public class Tools {
         String pattern1 = "(%[\\w]*)";
         Pattern p = Pattern.compile(pattern1);
 
-//        HashMap<String, String> map = variables.get(name.split(":")[0]);
+
         HashMap<String, String> map = variables.get(name);
         ArrayList<HashMap<String, String>> list = new ArrayList<>();
         if (map != null)

@@ -1,5 +1,6 @@
-package com.rest.tests.api.frwm.response.expectation;
+package com.rest.tests.api.frwm.response.expectation.html;
 
+import com.rest.tests.api.frwm.response.expectation.IExpectation;
 import com.rest.tests.api.frwm.response.looking.ILookingObject;
 import net.minidev.json.JSONArray;
 
@@ -8,7 +9,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * Created by msolosh on 3/29/2016.
  */
-public class ExpectationSize implements IExpectation{
+public class ExpectationSize implements IExpectation {
 
     private int expected;
 
@@ -18,7 +19,7 @@ public class ExpectationSize implements IExpectation{
 
     @Override
     public void validate(ILookingObject detectedArray){
-        assertEquals(expected, ((JSONArray)detectedArray.getDetected()).size());
+        assertEquals(expected, ((Object[])detectedArray.getDetected()).length);
     }
 
 }

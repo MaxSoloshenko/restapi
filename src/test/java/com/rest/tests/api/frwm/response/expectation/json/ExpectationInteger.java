@@ -1,5 +1,6 @@
-package com.rest.tests.api.frwm.response.expectation;
+package com.rest.tests.api.frwm.response.expectation.json;
 
+import com.rest.tests.api.frwm.response.expectation.IExpectation;
 import com.rest.tests.api.frwm.response.looking.ILookingObject;
 
 import static org.testng.Assert.assertEquals;

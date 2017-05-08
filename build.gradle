@@ -1,4 +1,4 @@
-group 'com.rest.api.rest.json'
+group 'com.rest.tests.api.frwm'
 version '1.0-SNAPSHOT'
 
 apply plugin: 'java'
@@ -48,6 +48,7 @@ dependencies {
             ['org.springframework:spring-web:3.0.2.RELEASE'],
             ['com.jayway.jsonpath:json-path:2.2.0']
     )
+    compile group: 'net.sourceforge.htmlcleaner', name: 'htmlcleaner', version: '2.6.1'
 
     compile (
             ['org.testng:testng:6.8.8']

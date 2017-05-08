@@ -1,8 +1,9 @@
-package com.rest.tests.api.frwm.response.expectation;
+package com.rest.tests.api.frwm.response.expectation.html;
 
+import com.rest.tests.api.frwm.response.expectation.IExpectation;
 import com.rest.tests.api.frwm.response.looking.ILookingObject;
-import com.rest.tests.api.frwm.response.looking.LookingForArray;
-import com.rest.tests.api.frwm.response.looking.LookingForString;
+import com.rest.tests.api.frwm.response.looking.json.LookingForArray;
+import com.rest.tests.api.frwm.response.looking.json.LookingForString;
 import net.minidev.json.JSONArray;
 
 import static org.testng.AssertJUnit.assertTrue;
@@ -22,7 +23,7 @@ public class ExpectationContains implements IExpectation {
     public void validate(ILookingObject detected) {
 
         if (detected instanceof LookingForArray) {
-            JSONArray detectedArray = (JSONArray) detected.getDetected();
+            Object[] detectedArray = (Object[]) detected.getDetected();
 
             for (int k = 0; k < expected.length; k++) {
                 boolean result = false;
@@ -30,9 +31,9 @@ public class ExpectationContains implements IExpectation {
                 if (exp.startsWith("\"")) {
                     exp = exp.substring(1, exp.length() - 1);
 
-                    for (int i = 0; i < detectedArray.size(); i++) {
+                    for (int i = 0; i < detectedArray.length; i++) {
 
-                        String det = (String) detectedArray.get(i);
+                        String det = (String) detectedArray[i];
 
                         if (exp.toLowerCase().equals(det.toLowerCase())) {
                             result = true;
@@ -40,9 +41,9 @@ public class ExpectationContains implements IExpectation {
                         }
                     }
                 } else {
-                    for (int i = 0; i < detectedArray.size(); i++) {
+                    for (int i = 0; i < detectedArray.length; i++) {
 
-                        Integer det = (Integer) detectedArray.get(i);
+                        Integer det = (Integer) detectedArray[i];
 
                         if (Integer.parseInt(exp) == det) {
                             result = true;

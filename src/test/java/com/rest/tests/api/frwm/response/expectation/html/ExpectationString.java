@@ -1,7 +1,8 @@
-package com.rest.tests.api.frwm.response.expectation;
+package com.rest.tests.api.frwm.response.expectation.html;
 
+import com.rest.tests.api.frwm.response.expectation.IExpectation;
 import com.rest.tests.api.frwm.response.looking.ILookingObject;
-import com.rest.tests.api.frwm.response.looking.LookingForArray;
+import com.rest.tests.api.frwm.response.looking.json.LookingForArray;
 import net.minidev.json.JSONArray;
 
 import static org.testng.Assert.assertEquals;

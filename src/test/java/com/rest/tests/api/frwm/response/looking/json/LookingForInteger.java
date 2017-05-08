@@ -1,11 +1,12 @@
-package com.rest.tests.api.frwm.response.looking;
+package com.rest.tests.api.frwm.response.looking.json;
 
 import com.jayway.jsonpath.JsonPath;
+import com.rest.tests.api.frwm.response.looking.ILookingObject;
 
 /**
  * Created by msolosh on 3/29/2016.
  */
-public class LookingForInteger implements ILookingObject{
+public class LookingForInteger implements ILookingObject {
 
     private String type = "Integer";
     private int detected;

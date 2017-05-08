@@ -8,14 +8,16 @@ import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
+import org.ini4j.Profile;
+import org.ini4j.Wini;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -30,15 +32,24 @@ public class TestParser {
     private String name;
     private ArrayList<String> tags = new ArrayList<String>();
     private JSONArray commonTags;
+    private HashMap<String, String> commonHeaders;
     private boolean setUp;
 
     public TestParser(String filename, boolean setup) {
         this.setUp = setup;
         TestParser(filename);
+        try {
+            Settings sett = new Settings();
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+
     }
 
     private void TestParser(String filename){
         this.file = filename;
+        String[] names = file.split("\\\\");
 
         if (!this.setUp)
         {
@@ -55,7 +66,11 @@ public class TestParser {
             }
         }
         this.name = filename;
+    }
 
+    public void TestParser(String filename, boolean setup) {
+        this.setUp = setup;
+        TestParser(filename);
     }
 
     public Testcase parseTestCases(JSONObject test) throws Exception {
@@ -81,6 +96,13 @@ public class TestParser {
                 JSONObject body = (JSONObject)test.get("Body");
                 testcase.setBODY(body.toJSONString());
             }
+        }
+
+        if (test.get("Headers") != null || commonHeaders != null)
+        {
+            JSONObject headers = (JSONObject) test.get("Headers");
+            HashMap<?, ?> heads = updateHeaders(headers);
+            testcase.setHeaders(heads);
         }
 
         if (test.get("Params") != null)
@@ -178,6 +200,13 @@ public class TestParser {
 
             commonTags = (JSONArray)jsonObject.get("Tags");
 
+            if (jsonObject.get("Headers") != null)
+            {
+                JSONObject commonHeaders = (JSONObject) jsonObject.get("Headers");
+
+                this.commonHeaders = updateHeaders(commonHeaders);
+            }
+
             JSONArray tests = (JSONArray)jsonObject.get("SetUp");
 
             testcases = parseTestCases(tests, url, TestcaseType.SETUP);
@@ -192,8 +221,6 @@ public class TestParser {
 
         } catch (IOException e) {
             e.printStackTrace();
-        } catch (ParseException e) {
-            e.printStackTrace();
         }
 
         return testcases;
@@ -204,6 +231,17 @@ public class TestParser {
         ArrayList<Testcase> testcases = new ArrayList<Testcase>();
 
         if (tests != null) {
+
+            try
+            {
+                Settings api = new Settings();
+                this.commonHeaders = api.getTestcaseSettings("headers");
+            }
+            catch(Exception e)
+            {
+                System.out.println("There is no Settings/headers.frmw file.");
+            }
+
             Iterator<JSONObject> iterator = tests.iterator();
             while(iterator.hasNext())
             {
@@ -304,5 +342,21 @@ public class TestParser {
         }
 
         return fileMap;
+    }
+
+    private HashMap<String,String> updateHeaders(JSONObject headers)
+    {
+        HashMap<String, String> list;
+        commonHeaders = ((list = new HashMap<>()) == null) ? list : commonHeaders;
+
+        if (headers != null)
+        {
+            for (Object key : headers.keySet()) {
+                String keyStr = (String)key;
+                String keyvalue = (String)headers.get(keyStr);
+                list.put(keyStr, keyvalue);
+            }
+        }
+        return list;
     }
 }

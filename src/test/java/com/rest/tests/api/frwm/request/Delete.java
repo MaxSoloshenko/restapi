@@ -31,8 +31,8 @@ public class Delete implements IRequest {
         try {
             client = HttpClientBuilder.create().build();
 
-            delete.setHeader("Accept", "application/json");
-            delete.setHeader("Content-Type", "application/json");
+            delete = (HttpDelete) Tools.setHeaders(delete, test.getHeaders());
+
             if (test.getPARAMS() != null) {
 
                 JSONObject params = test.getPARAMS();

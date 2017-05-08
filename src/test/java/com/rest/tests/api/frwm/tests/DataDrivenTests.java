@@ -230,7 +230,7 @@ public class DataDrivenTests {
 
             assertNotNull("Response is NULL. Probably there is a problem with network.", response);
 
-            PrintHeaders(response);
+            LoggingHeadersFromResponse(response);
 
             String status = String.valueOf(response.getStatusLine().getStatusCode());
             String body = null;
@@ -362,7 +362,7 @@ public class DataDrivenTests {
 
                     HttpResponse response = RequestFactory.getRequest(test).sendRequest();
 
-                    PrintHeaders(response);
+                    LoggingHeadersFromResponse(response);
                     String body = null;
                     Object document = null;
                     if (response.getEntity() != null) {
@@ -489,11 +489,11 @@ public class DataDrivenTests {
         return testcases;
     }
 
-    private void PrintHeaders(HttpResponse response) throws IOException {
+    private void LoggingHeadersFromResponse(HttpResponse response) throws IOException {
         Tools.printFixLineString("RESPONSE HEADERs", "=");
-        List<String> list = api.getHeadersForLogging();
+        HashMap<String, String> list = api.getTestcaseSettings("logging");
         if (list != null) {
-            for (String item : list)
+            for (String item : list.keySet())
             {
                 try {
                     System.out.println(response.getHeaders(item)[0]);

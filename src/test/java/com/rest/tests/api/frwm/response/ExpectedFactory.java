@@ -1,5 +1,7 @@
 package com.rest.tests.api.frwm.response;
 
+import com.rest.tests.api.frwm.response.expectation.html.HpathValidation;
+import com.rest.tests.api.frwm.response.expectation.json.XpathValidation;
 import org.json.simple.JSONObject;
 
 /**
@@ -17,12 +19,15 @@ public class ExpectedFactory {
         else if (type.startsWith("REGEX")) {
             return new REGEXValidation(expect);
         }
+        else if (type.startsWith("h")) {
+            return new HpathValidation(expect);
+        }
         else if (type.toLowerCase().equals("status")) {
             Long status = (Long)expect.get("value");
             return new StatusValidation(status.intValue());
         }
         else {
-            throw new Exception("Unknown expectation type: " + type);
+            throw new Exception("Unknown jexpectation type: " + type);
         }
     }
 }

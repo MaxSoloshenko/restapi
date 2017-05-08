@@ -3,6 +3,7 @@ package com.rest.tests.api.frwm.request;
 import com.rest.tests.api.frwm.testcase.Testcase;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -32,9 +33,8 @@ public class Put implements IRequest {
         try {
             HttpClient client = HttpClientBuilder.create().build();
 
+            put = (HttpPut) Tools.setHeaders(put, test.getHeaders());
 
-            put.setHeader("Accept", "application/json");
-            put.setHeader("Content-Type", "application/json");
             if (test.getPARAMS() != null) {
 
                 JSONObject params = test.getPARAMS();

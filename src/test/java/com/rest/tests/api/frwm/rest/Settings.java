@@ -1,6 +1,7 @@
 package com.rest.tests.api.frwm.rest;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.ini4j.Profile;
 import org.ini4j.Wini;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -13,6 +14,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -26,7 +28,6 @@ public class Settings {
     ClassLoader classLoader = getClass().getClassLoader();
 
     private static final String properties = "Settings/APIUrls.properties";
-    private static final String headers = "Settings/headers.frmw";
 
     Settings(String fileName) throws IOException {
 
@@ -42,9 +43,7 @@ public class Settings {
         //Get file from resources folder
         String path = null;
         try {
-            System.out.print("Read properties file: " + properties + " - ");
             path = URLDecoder.decode(classLoader.getResource(properties).getFile().toString(), "utf-8");
-            System.out.println("OK");
         } catch (Exception e) {
             System.out.println("FAILED");
             System.out.println("Resource folder is not found!");
@@ -133,28 +132,18 @@ public class Settings {
         return both;
     }
 
-    public List<String> getHeadersForLogging() throws IOException {
-        try {
-            String path = URLDecoder.decode(classLoader.getResource(headers).getFile().toString(), "utf-8");
+    public HashMap<String, String> getTestcaseSettings(String section) throws IOException {
 
-            BufferedReader br = new BufferedReader(new FileReader(path));
-            try {
-                String line = br.readLine();
+        String path = URLDecoder.decode(classLoader.getResource("Settings/testcase.default").getFile().toString(), "utf-8");
+        File file = new File(path);
 
-                ArrayList<String> list = new ArrayList<String>();
-                while (line != null) {
-
-                    list.add(line);
-                    line = br.readLine();
-                }
-                return list;
-            } finally {
-                br.close();
-            }
-        } catch (IOException e) {
-            System.out.println(headers + " not found in resource folder.");
-            e.printStackTrace();
+        Wini resource = new Wini(file);
+        Profile.Section asd = resource.get(section);
+        HashMap<String, String> list = new HashMap<>();
+        for (String key : asd.childrenNames())
+        {
+            list.put(key, asd.get(key));
         }
-        return null;
+        return list;
     }
 }
