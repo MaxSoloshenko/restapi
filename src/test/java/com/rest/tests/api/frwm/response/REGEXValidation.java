@@ -31,7 +31,7 @@ public class REGEXValidation implements IExpectationValidator {
      }
 
     @Override
-    public HashMap<String, String> validation(Object response) throws IOException {
+    public HashMap<String, String> validation(Object response, String file) throws IOException {
 
         String var = null;
         String body = response.toString();

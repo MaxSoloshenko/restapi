@@ -1,6 +1,5 @@
 package com.rest.tests.api.frwm.settings;
 
-import com.rest.tests.api.frwm.rest.Settings;
 import com.rest.tests.api.frwm.testcase.Testcase;
 import com.rest.tests.api.frwm.testcase.TestcaseFactory;
 import com.rest.tests.api.frwm.testcase.TestcaseType;
@@ -8,16 +7,12 @@ import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
-import org.ini4j.Profile;
-import org.ini4j.Wini;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.net.URLDecoder;
+import java.io.*;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -113,6 +108,7 @@ public class TestParser {
         if (test.get("Boundary") != null)
         {
             testcase.setBOUNDARY((JSONObject) test.get("Boundary"));
+            testcase.setSourceFile("%SourceFile");
         }
 
         if (test.get("Tags") != null)
@@ -147,6 +143,25 @@ public class TestParser {
         testcase.setEXPECTATIONS(expectations);
 
         return testcase;
+    }
+
+    private ArrayList<String> readTestSuiteFile(String filename) throws FileNotFoundException {
+
+        ArrayList<String> testcases = new ArrayList<String>();
+        String line;
+        try (
+                InputStream fis = new FileInputStream(filename);
+                InputStreamReader isr = new InputStreamReader(fis, Charset.forName("UTF-8"));
+                BufferedReader br = new BufferedReader(isr);
+        ) {
+            while ((line = br.readLine()) != null) {
+                testcases.add(line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return testcases;
     }
 
     public String getServiceURL(String serviceName) throws IOException {
@@ -190,8 +205,8 @@ public class TestParser {
         String url;
 
         try {
-            System.out.println("Parse file " + file);
-            System.out.println("Test cases:");
+            Tools.writeToFile(file, "Test cases:\n");
+
             Object obj = par.parse(new FileReader(file));
             JSONObject jsonObject = (JSONObject)obj;
 
@@ -200,24 +215,48 @@ public class TestParser {
 
             commonTags = (JSONArray)jsonObject.get("Tags");
 
-            if (jsonObject.get("Headers") != null)
+            JSONArray tests = (JSONArray)jsonObject.get("Tests");
+
+            testcases = parseTestCases(tests, url, TestcaseType.TEST);
+
+            if (testcases != null)
             {
-                JSONObject commonHeaders = (JSONObject) jsonObject.get("Headers");
+                Tools.writeToFile(file, "Test cases SetUp:\n");
+                tests = (JSONArray)jsonObject.get("SetUp");
 
-                this.commonHeaders = updateHeaders(commonHeaders);
+                testcases.addAll(parseTestCases(tests, url, TestcaseType.SETUP));
+
+                Tools.writeToFile(file, "Test cases TearDown:\n");
+                tests = (JSONArray)jsonObject.get("TearDown");
+
+                testcases.addAll(parseTestCases(tests, url, TestcaseType.TEARDOWN));
             }
-
-            JSONArray tests = (JSONArray)jsonObject.get("SetUp");
-
-            testcases = parseTestCases(tests, url, TestcaseType.SETUP);
-
-            tests = (JSONArray)jsonObject.get("Tests");
-
-            testcases.addAll(parseTestCases(tests, url, TestcaseType.TEST));
-
-            tests = (JSONArray)jsonObject.get("TearDown");
-
-            testcases.addAll(parseTestCases(tests, url, TestcaseType.TEARDOWN));
+//            Object obj = par.parse(new FileReader(file));
+//            JSONObject jsonObject = (JSONObject)obj;
+//
+//            String serviceName = (String)jsonObject.get("Microservice");
+//            url = getServiceURL(serviceName);
+//
+//            commonTags = (JSONArray)jsonObject.get("Tags");
+//
+//            if (jsonObject.get("Headers") != null)
+//            {
+//                JSONObject commonHeaders = (JSONObject) jsonObject.get("Headers");
+//
+//                this.commonHeaders = updateHeaders(commonHeaders);
+//            }
+//
+//            JSONArray tests = (JSONArray)jsonObject.get("SetUp");
+//
+//            testcases = parseTestCases(tests, url, TestcaseType.SETUP);
+//
+//            tests = (JSONArray)jsonObject.get("Tests");
+//
+//            testcases.addAll(parseTestCases(tests, url, TestcaseType.TEST));
+//
+//            tests = (JSONArray)jsonObject.get("TearDown");
+//
+//            testcases.addAll(parseTestCases(tests, url, TestcaseType.TEARDOWN));
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -231,24 +270,13 @@ public class TestParser {
         ArrayList<Testcase> testcases = new ArrayList<Testcase>();
 
         if (tests != null) {
-
-            try
-            {
-                Settings api = new Settings();
-                this.commonHeaders = api.getTestcaseSettings("headers");
-            }
-            catch(Exception e)
-            {
-                System.out.println("There is no Settings/headers.frmw file.");
-            }
-
             Iterator<JSONObject> iterator = tests.iterator();
             while(iterator.hasNext())
             {
                 JSONObject test = (JSONObject)iterator.next();
 
                 String nameTc = (String)test.get("Name");
-                System.out.print("- " + nameTc);
+                Tools.writeToFile(file, "- " + nameTc);
                 try {
                     Testcase tcs = parseTestCases(test);
                     if (tcs != null) {
@@ -264,20 +292,21 @@ public class TestParser {
                             tcs.setURL(url + tcs.getURL());
 
                         if ((this.tags.size() == 0) ||
-                                (checkTags(tcs)) || setUp)
+                                (checkTags(tcs)) || setUp )
                         {
+
                             testcases.add(tcs);
                         }
 
-                        System.out.println(" - OK");
+                        Tools.writeToFile(file, " - OK\n");
                     }
                     else
                     {
-                        System.out.println(" - DISABLED");
+                        Tools.writeToFile(file, " - DISABLED\n");
                     }
                 } catch (Exception e) {
-                    System.out.println(" - SKIPPED");
-                    System.out.println(e.getMessage());
+                    Tools.writeToFile(file, " - SKIPPED\n");
+                    Tools.writeToFile(file, e.getMessage());
                 }
             }
         }
@@ -326,7 +355,7 @@ public class TestParser {
         fileMap = new HashMap<String, String>();
         if (jsonObject.get("Variables") != null)
         {
-            System.out.println("VARIABLES:");
+//            System.out.println("VARIABLES:");
             JSONObject variables = (JSONObject)jsonObject.get("Variables");
 
             Set<String> keys = variables.keySet();
@@ -336,7 +365,7 @@ public class TestParser {
                 String key = as.next().toString();
                 String value = (String)variables.get(key);
                 value = Tools.generateVariables(value);
-                System.out.println(key + ": " + value);
+//                System.out.println(key + ": " + value);
                 fileMap.put(key, value);
             }
         }

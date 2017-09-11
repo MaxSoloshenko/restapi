@@ -13,7 +13,7 @@ public class ExpectedFactory {
 
         String type = (String)expect.get("type");
 
-        if (type.toLowerCase().startsWith("x")) {
+        if (type.toLowerCase().startsWith("j")) {
             return new XpathValidation(expect);
         }
         else if (type.startsWith("REGEX")) {
@@ -25,6 +25,9 @@ public class ExpectedFactory {
         else if (type.toLowerCase().equals("status")) {
             Long status = (Long)expect.get("value");
             return new StatusValidation(status.intValue());
+        }
+        else if (type.equalsIgnoreCase("contains")) {
+            return new StringValidation(expect);
         }
         else {
             throw new Exception("Unknown jexpectation type: " + type);

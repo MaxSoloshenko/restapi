@@ -3,6 +3,7 @@ package com.rest.tests.api.frwm.request;
 import com.rest.tests.api.frwm.testcase.Testcase;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.simple.JSONObject;
@@ -24,15 +25,20 @@ public class Delete implements IRequest {
     @Override
     public HttpResponse sendRequest(){
 
-        HttpClient client;
         HttpDelete delete = new HttpDelete(test.getURL());
         HttpResponse res = null;
 
         try {
-            client = HttpClientBuilder.create().build();
+            RequestConfig.Builder requestConfig = RequestConfig.custom();
+            requestConfig = requestConfig.setConnectTimeout(30 * 1000);
+            requestConfig = requestConfig.setConnectionRequestTimeout(30 * 1000);
 
-            delete = (HttpDelete) Tools.setHeaders(delete, test.getHeaders());
+            HttpClientBuilder builder = HttpClientBuilder.create();
+            builder.setDefaultRequestConfig(requestConfig.build());
+            HttpClient httpclient = builder.build();
 
+            delete.setHeader("Accept", "application/json");
+            delete.setHeader("Content-Type", "application/json");
             if (test.getPARAMS() != null) {
 
                 JSONObject params = test.getPARAMS();
@@ -45,7 +51,7 @@ public class Delete implements IRequest {
                 }
             }
 
-            res = client.execute(delete);
+            res = httpclient.execute(delete);
 
         } catch (IOException e) {
             PrintOut print = new PrintOut();

@@ -1,13 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<suite name="API Gateway" data-provider-thread-count="5">
-
-    <listeners>
-        <listener class-name="listeners.FailedListener" />
-    </listeners>
+<suite name="API Gateway" data-provider-thread-count="40" parallel="methods">
 
     <test name="Tests">
         <classes>
-            <class name="com.rest.tests.api.tests.DataDrivenParallelTests" />
+            <class name="com.rest.tests.api.frwm.tests.DataDrivenParallelTests" />
         </classes>
     </test>
 </suite>

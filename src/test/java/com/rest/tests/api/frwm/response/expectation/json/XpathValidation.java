@@ -4,6 +4,7 @@ import com.rest.tests.api.frwm.response.IExpectationValidator;
 import com.rest.tests.api.frwm.response.expectation.IExpectation;
 import com.rest.tests.api.frwm.response.looking.ILookingObject;
 import com.rest.tests.api.frwm.response.looking.json.LookingFactory;
+import com.rest.tests.api.frwm.settings.Tools;
 import junit.framework.Assert;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -40,6 +41,11 @@ public class XpathValidation implements IExpectationValidator {
             Long val = (Long)expect.get("value");
             expected = val.toString();
         }
+        else if (expect.get("value") instanceof Boolean)
+        {
+            Boolean val = (Boolean)expect.get("value");
+            expected = val.toString();
+        }
      }
 
     private void validation(ILookingObject look) {
@@ -53,6 +59,8 @@ public class XpathValidation implements IExpectationValidator {
             expect = new ExpectationEqual(expected);
         } else if (type.equalsIgnoreCase("jXPATH")) {
             expect = new ExpectationString(expected);
+        } else if (type.equalsIgnoreCase("jXBOOLEAN")) {
+            expect = new ExpectationBoolean(expected);
         } else if (type.equalsIgnoreCase("jXINTEGER")) {
             expect = new ExpectationInteger(expected);
         }
@@ -85,7 +93,7 @@ public class XpathValidation implements IExpectationValidator {
     }
 
     @Override
-    public HashMap<String, String> validation(Object response) throws IOException {
+    public HashMap<String, String> validation(Object response, String file) throws IOException {
 
         ILookingObject detectedObject = LookingFactory.getLookingNode(response, xpath);
 
@@ -107,15 +115,13 @@ public class XpathValidation implements IExpectationValidator {
                     var = var.substring(2, var.length() - 2);
                 }
                 else if (var.equals("[]")) {
-                    System.out.println();
-                    System.out.println("Nothing found for xpath: " + xpath);
-                    return null;
+                    org.springframework.util.Assert.notNull(null, "Nothing found for xpath: " + xpath);
                 }
             }
             else
                 var = detectedObject.getDetected().toString();
             hm.put(expected, var);
-            System.out.println(" = " + var);
+            Tools.writeToFile(file," = " + var);
             return hm;
         }
     }

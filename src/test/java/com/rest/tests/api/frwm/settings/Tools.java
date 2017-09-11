@@ -1,10 +1,18 @@
 package com.rest.tests.api.frwm.settings;
 
 import com.rest.tests.api.frwm.testcase.Testcase;
+import org.apache.http.Header;
+import org.apache.http.HttpResponse;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -15,25 +23,74 @@ import java.util.regex.Pattern;
  */
 public class Tools {
 
-    public static void printFixLineString(String text, String pattern){
+    public static String printFixLineString(String text, String pattern){
 
-        System.out.println();
+//        System.out.println();
         int size = text.length();
-        int p = (120 - size - 2);
+        int p = (100 - size - 2);
+        String res = "";
         if (p > 0)
         {
             String patt = new String(new char[p]).replace('\0', pattern.toCharArray()[0]);
-            System.out.println(patt.substring(0, p/2) + " " + text + " " + patt.substring(p/2, patt.length()));
+            res = patt.substring(0, p/2) + " " + text + " " + patt.substring(p/2, patt.length());
         }
         else
         {
-            System.out.println(text);
+            res = text;
         }
+        return res;
     }
 
+    public static String PrintHeaders(HttpResponse response, Settings api) {
+        String res = printFixLineString("RESPONSE HEADERs", "=") + "\n";
+        List<String> list = api.getHeadersForLogging();
+        if (list != null) {
+            for (String item : list)
+            {
+                try {
 
-    public static String replaceVariables(String expect, String name, HashMap<String, HashMap<String, String>> variables)
-    {
+                    Header head = response.getHeaders(item)[0];
+                    res = res + head.toString() + "\n";
+                } catch (Exception e) {
+                    res = res + "There is no headers with name: " + item + "\n";
+                }
+            }
+        }
+        return res;
+    }
+
+    public static Testcase replaceVaraibles(String file, Testcase test, HashMap variables) throws Exception, VException {
+        int ind = test.getNAME().lastIndexOf(":");
+        file = file.substring(0, ind);
+
+        Tools.writeToFile(file, "Test: " + test.getNAME() + "\n");
+        test.setURL(replaceVariables(test.getURL(), file, variables));
+        test.setBODY(replaceVariables(test.getBODY(), file, variables));
+        test.setPARAMS(replaceVariables(test.getPARAMS(), file, variables));
+        test.setBOUNDARY(replaceVariables(test.getBOUNDARY(), file, variables));
+        test.setSourceFile(replaceVariables(test.getSourceFile(), file, variables));
+
+        Tools.writeToFile(file, printFixLineString(test.getNAME(), "-") + "\n");
+
+        String res = String.format("URL: %s\n" +
+                        "METHOD: %s\n" +
+                        "BODY: %s\n" +
+                        "PARAMS: %s\n",
+
+                test.getURL(),
+                test.getMETHOD(),
+                test.getBODY(),
+                test.getPARAMS()
+                );
+
+        if (test.getBOUNDARY() != null)
+            res = res + "BOUNDARY: " + test.getBOUNDARY().toJSONString() + "\n";
+
+        writeToFile(file, res);
+        return test;
+    }
+
+    public static String replaceVariables(String expect, String name, HashMap<String, HashMap<String, String>> variables) throws VException {
         String pattern1 = "(%[\\w]*)";
         Pattern p = Pattern.compile(pattern1);
 
@@ -43,27 +100,48 @@ public class Tools {
         if (map != null)
             list.add(map);
         list.add(variables.get("all"));
-        try {
-            Matcher m = p.matcher(expect);
+        if (expect != null)
+        {
+            try {
+                Matcher m = p.matcher(expect);
 
-            while (m.find()) {
-                String variable = m.group();
+                while (m.find()) {
+                    String variable = m.group();
 
-                for(HashMap<String, String> lst : list) {
-                    Set set = lst.entrySet();
-                    Iterator iterator = set.iterator();
-                    while(iterator.hasNext()) {
-                        Map.Entry mentry = (Map.Entry)iterator.next();
-                        String var = mentry.getKey().toString().toLowerCase();
-                        if (var.equals(variable.substring(1).toLowerCase()))
-                        {
-                            expect = expect.replace(variable, (CharSequence) mentry.getValue());
-                        }
+                    int k = 0;
+                    for(HashMap<String, String> lst : list) {
+                            String value = lst.get(variable.replace("%",""));
+                            if (value == null) {
+                                k = k + 1;
+                                continue;
+                            }
+                            expect = expect.replaceAll(variable, value);
+                            break;
+
                     }
                 }
+            } catch (Exception e) {
+//                System.out.println();
             }
-        } catch (Exception e) {}
+        }
 
+
+        if (expect != null && expect.contains("%") && !expect.startsWith("REGEX"))
+        {
+            Tools.writeToFile(name, expect);
+            throw new VException(name + ":" + expect);
+        }
+        return expect;
+    }
+
+    public static JSONObject replaceVariables(JSONObject expect, String name, HashMap<String, HashMap<String, String>> variables) throws Exception, VException {
+
+        if (expect != null) {
+            String exp = expect.toJSONString();
+            exp = replaceVariables(exp, name, variables);
+            JSONParser parser = new JSONParser();
+            expect = (JSONObject) parser.parse(exp);
+        }
         return expect;
     }
 
@@ -89,7 +167,7 @@ public class Tools {
         }
     };
 
-    public static JSONObject replaceVariables(JSONObject expect, String name, HashMap<String, HashMap<String, String>> variables)
+/***    public static JSONObject replaceVariables(JSONObject expect, String name, HashMap<String, HashMap<String, String>> variables)
     {
         if (expect == null)
             return null;
@@ -150,7 +228,7 @@ public class Tools {
 
         return expect;
     }
-
+***/
     public static String generateVariables(String expect)
     {
         String pattern = "\\{(.*?)\\}";
@@ -184,5 +262,65 @@ public class Tools {
         return expect;
     }
 
+    public static void writeToFile(String file, String text)
+    {
+        writeToFile(file, text, false);
+    }
 
+    public static void writeToFile(String file, String text, boolean date)
+    {
+        BufferedWriter bw = null;
+        FileWriter fw = null;
+        File fl = new File(file + ".log");
+        try {
+        // if file doesnt exists, then create it
+        if (!fl.exists()) {
+            fl.createNewFile();
+        }
+
+        // true = append file
+        fw = new FileWriter(fl.getAbsoluteFile(), true);
+        bw = new BufferedWriter(fw);
+        String timeStamp = "";
+        if (date)
+        {
+            timeStamp = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(new Date()) + " ";
+        }
+
+        bw.write(timeStamp + text);
+
+    } catch (IOException e) {
+
+        e.printStackTrace();
+
+    } finally {
+
+        try {
+
+            if (bw != null)
+                bw.close();
+
+            if (fw != null)
+                fw.close();
+
+        } catch (IOException ex) {
+
+            ex.printStackTrace();
+
+        }
+    }
+    }
+
+    public static String readFile(String file) {
+
+        try
+        {
+            String fileString = new String(Files.readAllBytes(Paths.get(file)));
+            return fileString;
+        }
+        catch (IOException e)
+        {
+            return "There is no file " + file;
+        }
+    }
 }

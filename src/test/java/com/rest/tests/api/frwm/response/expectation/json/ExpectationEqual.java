@@ -40,7 +40,10 @@ public class ExpectationEqual implements IExpectation {
             {
                 det = (String) detectedArray.get(p);
             }
-            assertEquals(det, expected.get(p).replace("\"", ""));
+            if (expected.size() == 1)
+                assertEquals(det, expected.get(0).replace("\"", ""));
+            else
+                assertEquals(det, expected.get(p).replace("\"", ""));
         }
         assertNotEquals(detectedArray.size(), 0);
     }

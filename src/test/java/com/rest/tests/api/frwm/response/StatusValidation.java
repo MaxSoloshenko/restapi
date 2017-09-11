@@ -16,7 +16,7 @@ public class StatusValidation implements IExpectationValidator{
     }
 
     @Override
-    public HashMap<String, String> validation(Object response){
+    public HashMap<String, String> validation(Object response, String file){
         assertEquals(String.valueOf("Response Status Code is wrong."), status, Integer.parseInt(response.toString()));
         return null;
     }

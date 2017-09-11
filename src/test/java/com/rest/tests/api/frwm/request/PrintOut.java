@@ -9,13 +9,13 @@ public class PrintOut {
 
     public static void Print(HttpRequestBase request){
 
-        System.out.println("Request method: " + request.getMethod());
-        System.out.println("Request path:   " + request.getURI());
-        System.out.println("Protocol:       " + request.getRequestLine().getProtocolVersion().getProtocol());
-
-        if (request.headerIterator().hasNext())
-        {
-            System.out.println("Header: " + request.headerIterator().nextHeader());
-        }
+//        System.out.println("Request method: " + request.getMethod());
+//        System.out.println("Request path:   " + request.getURI());
+//        System.out.println("Protocol:       " + request.getRequestLine().getProtocolVersion().getProtocol());
+//
+//        if (request.headerIterator().hasNext())
+//        {
+//            System.out.println("Header: " + request.headerIterator().nextHeader());
+//        }
     }
 }

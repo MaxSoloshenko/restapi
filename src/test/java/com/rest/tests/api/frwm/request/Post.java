@@ -3,7 +3,7 @@ package com.rest.tests.api.frwm.request;
 import com.rest.tests.api.frwm.testcase.Testcase;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
@@ -36,7 +36,13 @@ public class Post implements IRequest {
         HttpResponse res = null;
 
         try {
-            HttpClient client = HttpClientBuilder.create().build();
+            RequestConfig.Builder requestConfig = RequestConfig.custom();
+            requestConfig = requestConfig.setConnectTimeout(30 * 1000);
+            requestConfig = requestConfig.setConnectionRequestTimeout(30 * 1000);
+
+            HttpClientBuilder builder = HttpClientBuilder.create();
+            builder.setDefaultRequestConfig(requestConfig.build());
+            HttpClient httpclient = builder.build();
 
             if (test.getPARAMS() != null) {
 
@@ -63,10 +69,18 @@ public class Post implements IRequest {
                     String key = (String)iter.next();
                     String value = (String)boundary.get(key);
 
+
                     if (key.equals("filestream"))
                     {
 
-                        File file = new File(classLoader.getResource("SourceFiles/" + value).getFile());
+                        String source = test.getSourceFile();
+                        File file = new File(classLoader.getResource("SourceFiles/").getPath() + value);
+                        String filename = file.getName();
+
+                        if (!file.exists()) {
+                            file = new File(classLoader.getResource("SourceFiles/").getPath() + source);
+//                            System.out.println("Your file " + value + " was not found. default.pdf will be used with your file name.");
+                        }
                         value = file.getAbsolutePath();
 
                         ContentType type;
@@ -84,10 +98,12 @@ public class Post implements IRequest {
                             type = ContentType.create("application/vnd.ms-powerpoint");
                         else if (value.endsWith(".pptm"))
                             type = ContentType.create("application/vnd.ms-powerpoint.presentation.macroEnabled.12");
+                        else if (value.endsWith(".mp4"))
+                            type = ContentType.create("video/mp4");
                         else
                             type = ContentType.create("application/octet-stream");
 
-                        entity.addBinaryBody(key, new File(value), type, file.getName());
+                        entity.addBinaryBody(key, new File(value), type, filename);
                     }
                     else
                     {
@@ -96,12 +112,11 @@ public class Post implements IRequest {
                 }
                 post.setEntity(entity.build());
             }
-//            else
-//            {
-//                post.setHeader("Content-Type", "application/json");
-//            }
-            post = (HttpPost) Tools.setHeaders(post, test.getHeaders());
-//            post.setHeader("Accept", "application/json, text/plain, */*");
+            else
+            {
+                post.setHeader("Content-Type", "application/json");
+            }
+            post.setHeader("Accept", "application/json, text/plain, */*");
 
             if (test.getBODY() != null)
             {
@@ -109,12 +124,11 @@ public class Post implements IRequest {
                 post.setEntity(entity);
             }
 
-            res = client.execute(post);
+            res = httpclient.execute(post);
 
         } catch (IOException e) {
             System.out.println("File not found.");
             PrintOut print = new PrintOut();
-            print.Print(post);
             e.printStackTrace();
         }
 

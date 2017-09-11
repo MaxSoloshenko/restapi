@@ -8,5 +8,5 @@ import java.util.HashMap;
  */
 public interface IExpectationValidator {
 
-    public HashMap<String, String> validation(Object response) throws IOException;
+    public HashMap<String, String> validation(Object response, String file) throws IOException;
 }

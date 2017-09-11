@@ -3,6 +3,7 @@ package com.rest.tests.api.frwm.request;
 import com.rest.tests.api.frwm.testcase.Testcase;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
@@ -31,10 +32,17 @@ public class Put implements IRequest {
         HttpResponse res = null;
 
         try {
-            HttpClient client = HttpClientBuilder.create().build();
+            RequestConfig.Builder requestConfig = RequestConfig.custom();
+            requestConfig = requestConfig.setConnectTimeout(30 * 1000);
+            requestConfig = requestConfig.setConnectionRequestTimeout(30 * 1000);
 
-            put = (HttpPut) Tools.setHeaders(put, test.getHeaders());
+            HttpClientBuilder builder = HttpClientBuilder.create();
+            builder.setDefaultRequestConfig(requestConfig.build());
+            HttpClient httpclient = builder.build();
 
+
+            put.setHeader("Accept", "application/json");
+            put.setHeader("Content-Type", "application/json");
             if (test.getPARAMS() != null) {
 
                 JSONObject params = test.getPARAMS();
@@ -53,7 +61,7 @@ public class Put implements IRequest {
                 put.setEntity(entity);
             }
 
-            res = client.execute(put);
+            res = httpclient.execute(put);
 
         } catch (IOException e) {
             PrintOut print = new PrintOut();

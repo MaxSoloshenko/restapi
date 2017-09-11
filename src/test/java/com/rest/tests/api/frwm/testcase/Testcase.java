@@ -25,6 +25,15 @@ abstract public class Testcase implements ITestCase{
     private long LoopTimeout = 0;
     private TestcaseType Type;
     private HashMap<?, ?> Headers;
+    private String SourceFile = null;
+
+    public String getSourceFile() {
+        return SourceFile;
+    }
+
+    public void setSourceFile(String sourceFile) {
+        SourceFile = sourceFile;
+    }
 
     public HashMap<?, ?> getHeaders() {
         return Headers;

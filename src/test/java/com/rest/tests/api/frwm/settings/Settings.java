@@ -1,4 +1,4 @@
-package com.rest.tests.api.frwm.rest;
+package com.rest.tests.api.frwm.settings;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.ini4j.Profile;
@@ -28,6 +28,7 @@ public class Settings {
     ClassLoader classLoader = getClass().getClassLoader();
 
     private static final String properties = "Settings/APIUrls.properties";
+    private static final String headers = "Settings/logging.frmw";
 
     Settings(String fileName) throws IOException {
 
@@ -45,8 +46,8 @@ public class Settings {
         try {
             path = URLDecoder.decode(classLoader.getResource(properties).getFile().toString(), "utf-8");
         } catch (Exception e) {
-            System.out.println("FAILED");
-            System.out.println("Resource folder is not found!");
+//            System.out.println("FAILED");
+//            System.out.println("Resource folder is not found!");
             e.printStackTrace();
         }
 
@@ -130,6 +131,31 @@ public class Settings {
         }
         Object[] both = (Object[]) ArrayUtils.addAll(obj, objArr);
         return both;
+    }
+
+    public List<String> getHeadersForLogging() {
+        try {
+            String path = URLDecoder.decode(classLoader.getResource(headers).getFile().toString(), "utf-8");
+
+            BufferedReader br = new BufferedReader(new FileReader(path));
+            try {
+                String line = br.readLine();
+
+                ArrayList<String> list = new ArrayList<String>();
+                while (line != null) {
+
+                    list.add(line);
+                    line = br.readLine();
+                }
+                return list;
+            } finally {
+                br.close();
+            }
+        } catch (IOException e) {
+            System.out.println(headers + " not found in resource folder.");
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public HashMap<String, String> getTestcaseSettings(String section) throws IOException {
