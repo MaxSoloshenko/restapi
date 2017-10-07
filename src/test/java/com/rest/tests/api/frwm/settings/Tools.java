@@ -1,16 +1,18 @@
 package com.rest.tests.api.frwm.settings;
 
+
+import com.jayway.jsonpath.Configuration;
+import com.rest.tests.api.frwm.testcase.TC;
 import com.rest.tests.api.frwm.testcase.Testcase;
 import org.apache.http.Header;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
@@ -59,31 +61,46 @@ public class Tools {
         return res;
     }
 
-    public static Testcase replaceVaraibles(String file, Testcase test, HashMap variables) throws Exception, VException {
-        int ind = test.getNAME().lastIndexOf(":");
-        file = file.substring(0, ind);
+    public static TC replaceVaraibles(TC test, Map variables) throws Exception, VException {
 
-        Tools.writeToFile(file, "Test: " + test.getNAME() + "\n");
-        test.setURL(replaceVariables(test.getURL(), file, variables));
-        test.setBODY(replaceVariables(test.getBODY(), file, variables));
-        test.setPARAMS(replaceVariables(test.getPARAMS(), file, variables));
-        test.setBOUNDARY(replaceVariables(test.getBOUNDARY(), file, variables));
-        test.setSourceFile(replaceVariables(test.getSourceFile(), file, variables));
+        String file = test.getName().split(":")[0];
+        JSONParser par = new JSONParser();
 
-        Tools.writeToFile(file, printFixLineString(test.getNAME(), "-") + "\n");
+        Tools.writeToFile(file, "Test: " + test.getName() + "\n");
+        test.setUrl(replaceVariable(test.getUrl(), variables));
+
+        if (test.getBody() != null)
+        {
+            try
+            {
+                JSONObject body = new JSONObject((HashMap)test.getBody());
+                test.setBODY(par.parse(replaceVariable(body.toJSONString(), variables)));
+            }catch (Exception e)
+            {
+                JSONArray arr = new JSONArray();
+                ArrayList<?> body = (ArrayList<?>) test.getBody();
+                for (Object ls : body)
+                {
+                    arr.add(ls);
+                }
+                test.setBODY(par.parse(replaceVariable(arr.toJSONString(), variables)));
+            }
+        }
+        test.setPARAMS((JSONObject) par.parse(replaceVariable(test.getPARAMS().toJSONString(), variables)));
+        test.setBOUNDARY((JSONObject) par.parse(replaceVariable(test.getBOUNDARY().toJSONString(), variables)));
+        test.setSourceFile(replaceVariable(test.getSourceFile(), variables));
 
         String res = String.format("URL: %s\n" +
-                        "METHOD: %s\n" +
-                        "BODY: %s\n" +
-                        "PARAMS: %s\n",
-
-                test.getURL(),
-                test.getMETHOD(),
-                test.getBODY(),
-                test.getPARAMS()
+                        "METHOD: %s\n" ,
+                test.getUrl(),
+                test.getMethod()
                 );
 
-        if (test.getBOUNDARY() != null)
+        if (test.getBody() != null)
+            res = res + "BODY: " + test.getBody().toString() + "\n";
+        if (!test.getPARAMS().toJSONString().equalsIgnoreCase("{}"))
+            res = res + "PARAMS: " + test.getPARAMS().toJSONString() + "\n";
+        if (!test.getBOUNDARY().toJSONString().equalsIgnoreCase("{}"))
             res = res + "BOUNDARY: " + test.getBOUNDARY().toJSONString() + "\n";
 
         writeToFile(file, res);
@@ -132,6 +149,34 @@ public class Tools {
             throw new VException(name + ":" + expect);
         }
         return expect;
+    }
+
+    public static String replaceVariable(String value, Map<String, String> variables) {
+        String pattern1 = "#\\{(.*?)\\}";
+        Pattern p = Pattern.compile(pattern1);
+
+        if (value != null)
+        {
+            try {
+                Matcher m = p.matcher(value);
+
+                while(m.find()) {
+                    String variable = m.group();
+
+                    String vale = variables.get(variable.replace("#{", "").replace("}", "").toLowerCase());
+                    if (vale != null) {
+                        while (value.contains(variable)) {
+                            value = value.replace(variable, vale);
+                        }
+
+                    }
+                }
+
+            } catch (Exception e) {
+            }
+        }
+
+        return value;
     }
 
     public static JSONObject replaceVariables(JSONObject expect, String name, HashMap<String, HashMap<String, String>> variables) throws Exception, VException {
@@ -322,5 +367,20 @@ public class Tools {
         {
             return "There is no file " + file;
         }
+    }
+
+    public static boolean arrayContains(String[] main, String[] contains)
+    {
+        if (main.length == 0)
+        {
+            return false;
+        }
+        Set<String> VALUES = new HashSet<String>(Arrays.asList(main));
+        for (String val : contains)
+        {
+            if (VALUES.contains(val))
+                return true;
+        }
+        return false;
     }
 }

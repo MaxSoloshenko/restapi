@@ -1,5 +1,6 @@
 package com.rest.tests.api.frwm.request;
 
+import com.rest.tests.api.frwm.testcase.TC;
 import com.rest.tests.api.frwm.testcase.Testcase;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -16,16 +17,16 @@ import java.util.Iterator;
  */
 public class Delete implements IRequest {
 
-    Testcase test;
+    TC test;
 
-    public Delete(Testcase testcase){
+    public Delete(TC testcase){
         this.test = testcase;
     }
 
     @Override
     public HttpResponse sendRequest(){
 
-        HttpDelete delete = new HttpDelete(test.getURL());
+        HttpDelete delete = new HttpDelete(test.getUrl());
         HttpResponse res = null;
 
         try {
@@ -39,7 +40,7 @@ public class Delete implements IRequest {
 
             delete.setHeader("Accept", "application/json");
             delete.setHeader("Content-Type", "application/json");
-            if (test.getPARAMS() != null) {
+            if (!test.getPARAMS().toJSONString().equalsIgnoreCase("{}")) {
 
                 JSONObject params = test.getPARAMS();
 

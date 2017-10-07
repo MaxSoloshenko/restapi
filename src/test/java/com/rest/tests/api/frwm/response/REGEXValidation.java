@@ -1,5 +1,8 @@
 package com.rest.tests.api.frwm.response;
 
+import com.rest.tests.api.frwm.settings.Tools;
+import com.rest.tests.api.frwm.testcase.Response;
+import org.apache.http.HttpResponse;
 import org.json.simple.JSONObject;
 import org.testng.Assert;
 
@@ -31,10 +34,12 @@ public class REGEXValidation implements IExpectationValidator {
      }
 
     @Override
-    public HashMap<String, String> validation(Object response, String file) throws IOException {
+    public HashMap<String, String> validation(Response response, String file) throws IOException {
+
+        Object document = response.getDocument();
 
         String var = null;
-        String body = response.toString();
+        String body = document.toString();
         Pattern p = Pattern.compile(regex);
 
         try {

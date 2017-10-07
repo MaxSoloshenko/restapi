@@ -1,5 +1,8 @@
 package com.rest.tests.api.frwm.response;
 
+import com.rest.tests.api.frwm.settings.Tools;
+import com.rest.tests.api.frwm.testcase.Response;
+import org.apache.http.HttpResponse;
 import org.json.simple.JSONObject;
 
 import java.io.IOException;
@@ -20,17 +23,15 @@ public class StringValidation implements IExpectationValidator{
 
     private void validation(String look) {
 
-//        if (expected.startsWith("contains")) {
             assertTrue(look.contains(expected), "Does not contain.");
-//        } else {
-//            assertTrue(false, String.format("Unknown expectation '%s'\n"));
-//        }
     }
 
     @Override
-    public HashMap<String, String> validation(Object response, String file) throws IOException {
+    public HashMap<String, String> validation(Response response, String file) throws IOException {
 
-        String detectedObject = response.toString();
+        Object document = response.getDocument();
+
+        String detectedObject = document.toString();
 
         validation(detectedObject);
         return null;

@@ -7,12 +7,16 @@ import com.rest.tests.api.frwm.response.ExpectedFactory;
 import com.rest.tests.api.frwm.response.IExpectationValidator;
 import com.rest.tests.api.frwm.response.StatusValidation;
 import com.rest.tests.api.frwm.settings.*;
+import com.rest.tests.api.frwm.testcase.Expectations.Expectation;
+import com.rest.tests.api.frwm.testcase.Response;
+import com.rest.tests.api.frwm.testcase.TC;
 import com.rest.tests.api.frwm.testcase.Testcase;
 import com.rest.tests.api.frwm.testcase.TestcaseType;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.junit.Assert;
 import org.testng.ITestResult;
 import org.testng.Reporter;
@@ -22,6 +26,7 @@ import com.jayway.jsonpath.Configuration;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -31,41 +36,69 @@ import java.util.Set;
 public class DataDrivenParallelTests {
 
     private Settings api;
-    private ArrayList<String> suites;
+    private ArrayList<String> suites = new ArrayList<>();
     private ArrayList<String> failed = new ArrayList<>();
-    private ArrayList<Testcase> cases = new ArrayList<>();
-    private HashMap<String, HashMap<String, String>> variables = new HashMap<String, HashMap<String, String>>();
-    private String filename = "";
+    private HashMap<String, Map<String, String>> variables = new HashMap<String, Map<String, String>>();
     private ArrayList<String> skipNames = new ArrayList<>();
 
     @BeforeClass(alwaysRun = true)
     public void setUp() throws Exception {
 
         api = new Settings();
-        getVariables();
+        setVariable("all", api.getGlobalVariables());
 
         Filewalker fll = new Filewalker();
-        suites = fll.walk();
-        cases = parseCases(suites, false);
+        ArrayList<String> setup = fll.walk("TestSuite/_SetUp/");
 
-        if (cases.size() > 0)
+        for (String filename : setup)
         {
-            ArrayList<String> setup;
-            Filewalker fl = new Filewalker();
+            TestParser suite = new TestParser(filename);
+            setVariable(filename, suite.getTSVariables());
+            execTestSuite(filename, "global");
+        }
 
-            setup = fl.walk("TestSuite/_SetUp/");
-            if (setup != null) {
+        ArrayList<String> files = fll.walk(); //list of files
 
-                ArrayList<Testcase> setups = parseCases(setup, true);
-                Tools.printFixLineString("_SetUp GLOBAL", "▄");
-                setupCases(setups);
-                Tools.printFixLineString("", "▄");
+        for (String filename : files)
+        {
+            if (filename.contains("TestSuite/_SetUp") || filename.contains("TestSuite/_TearDown"))
+                continue;
+            TestParser suite = new TestParser(filename);
+
+            if (Tools.arrayContains(suite.getTcsuite().getTags(), api.getTags()))
+            {
+                suites.add(filename);
+                setVariable(filename, suite.getTSVariables());
+            }
+            else
+            {
+                JSONObject tests[] = suite.getTcsuite().getTests();
+                for(JSONObject test : tests)
+                {
+                    TC tc = suite.parseTest(test);
+                    if (Tools.arrayContains(tc.getTags(), api.getTags()))
+                    {
+                        suites.add(filename);
+                        setVariable(filename, suite.getTSVariables());
+                        break;
+                    }
+                }
             }
         }
     }
 
     @AfterClass(alwaysRun = true)
     public void tearDown() throws Exception {
+
+        Filewalker fll = new Filewalker();
+        ArrayList<String> setup = fll.walk("TestSuite/_TearDown/");
+
+
+        for (String filename : setup)
+        {
+//                TestParser suite = new TestParser(filename);
+                execTestSuite(filename, "global");
+        }
 
         for (String failure : failed)
         {
@@ -86,15 +119,7 @@ public class DataDrivenParallelTests {
         }
 
         System.out.println(Tools.printFixLineString("", "•"));
-        System.out.println(Tools.printFixLineString("", "≠"));
-        ArrayList<String> setup;
-        Filewalker fl = new Filewalker();
-
-        setup = fl.walk("TestSuite/_TearDown/");
-        if (setup != null) {
-            ArrayList<Testcase> setups = parseCases(setup, true);
-            setupCases(setups);
-        }
+        System.out.println(Tools.printFixLineString("", "|"));
     }
 
     @BeforeMethod(alwaysRun = true)
@@ -102,39 +127,42 @@ public class DataDrivenParallelTests {
 
         String file = data[0].toString();
         try {
-            SetUpTearDown(file, TestcaseType.SETUP);
+//            TestParser suite = new TestParser(file);
+            execTestSuite(file, "setup");
         } catch (Exception e) {
             System.out.println("Skipped Before operation");
+        } catch(Throwable t)
+        {
+            System.out.println("Skipped Before operation");
         }
+
     }
 
     @AfterMethod(alwaysRun = true)
     public void teardown(Object[] data) throws Exception {
 
         String file = data[0].toString();
-        SetUpTearDown(file, TestcaseType.TEARDOWN);
+//        TestParser suite = new TestParser(file);
+        try {
+        execTestSuite(file, "teardown");
+    } catch (Exception e) {
+        System.out.println("Skipped Before operation");
+    } catch(Throwable t)
+    {
+        System.out.println("Skipped Before operation");
+    }
     }
 
     @DataProvider(name = "REST", parallel = true)
     public Object[][] createData() throws Exception {
 
-        ArrayList<String> files = new ArrayList<>();
-        String file;
-        if (cases.size() > 0)
-        {
-            for (Testcase test : cases) {
-                file = test.getNAME().substring(0, test.getNAME().indexOf(":"));
-                if (!files.contains(file)) {
-                    files.add(file);
-                }
-            }
 
-            Object[][] testList = new Object[files.size()][1];
-            for (int k = 0; k < files.size(); k++) {
-                testList[k][0] = files.get(k);
+        if (suites.size() > 0)
+        {
+            Object[][] testList = new Object[suites.size()][1];
+            for (int k = 0; k < suites.size(); k++) {
+                testList[k][0] = suites.get(k);
             }
-            System.out.println("Files: " + testList.length);
-            System.out.println("Cases: " + cases.size());
             return testList;
         }
 
@@ -144,249 +172,104 @@ public class DataDrivenParallelTests {
 
     @Test(dataProvider = "REST")
     public void RestAPI(String file) throws Exception {
-        long startFile = System.nanoTime();
-
         if (skipNames.contains(file)) {
             Reporter.getCurrentTestResult().setAttribute("result", ITestResult.SKIP);
             System.out.println(file + " - SKIPPED");
             return;
         }
 
-        for (int l = 0; l < cases.size(); l++) {
-            Testcase test = cases.get(l);
-
-            if (test.getType().equals(TestcaseType.TEST) && test.getNAME().startsWith(file)) {
-                Thread.sleep(test.getTimeout());
-
-                Tools.writeToFile(file, Tools.printFixLineString("TESTCASE", "=") + "\n");
-                try {
-                    test = Tools.replaceVaraibles(file, test, variables);
-                } catch (Exception | VException e) {
-                    failed.add(file);
-                    Assert.fail(e.getMessage());
-                }
-                int ind = test.getNAME().lastIndexOf(":");
-                file = file.substring(0, ind);
-
-                int loop = test.getLoop();
-
-                boolean success;
-                while (loop > 0) {
-                    success = true;
-                    --loop;
-                    long start = System.nanoTime();
-                    HttpResponse response = RequestFactory.getRequest(test).sendRequest();
-                    long elapsed = System.nanoTime() - start;
-                    Tools.writeToFile(file, "Elapsed ms --> " + elapsed / 1e6 + "\n", true);
-
-                    Assert.assertNotNull("Response is NULL. Probably there is a problem with network.", response);
-
-                    String log = Tools.PrintHeaders(response, api);
-                    Tools.writeToFile(file, log + "\n");
-
-                    int status = response.getStatusLine().getStatusCode();
-                    String body = null;
-                    Object document = null;
-
-                    if (response.getEntity() != null) {
-                        body = EntityUtils.toString(response.getEntity());
-
-                        if (response.getEntity().getContentType() != null && response.getEntity().getContentType().toString().contains("text/csv")) {
-                            document = body;
-                        } else {
-                            document = Configuration.defaultConfiguration().jsonProvider().parse(body);
-                        }
-                    }
-
-                    Tools.writeToFile(file, Tools.printFixLineString("RESPONSE", "-") + "\n");
-                    if (body != null) {
-                        Tools.writeToFile(file, "BODY:\n" + body + "\n");
-                    }
-
-                    log = Tools.printFixLineString("", "-");
-
-                    Tools.writeToFile(file, log + "\nCheck Expectations: \n");
-
-                    for (JSONObject expect : test.getEXPECTATION()) {
-                        try {
-                            expect = Tools.replaceVariables(expect, file, variables);
-
-                            Tools.writeToFile(file, expect.toJSONString());
-                            HashMap testvar = new HashMap();
-                            IExpectationValidator expectedValidator = ExpectedFactory.getExpectedObject(expect);
-                            if (expectedValidator instanceof StatusValidation) {
-                                expectedValidator.validation(status, file);
-                            } else if (expectedValidator != null && document != null) {
-                                testvar = expectedValidator.validation(document, file);
-                                if (testvar != null) {
-                                    if (variables.get(file) != null) {
-                                        variables.get(file).putAll(testvar); //TODO:check how it works
-                                    } else {
-                                        setVariable(file, testvar);
-                                    }
-                                }
-                            } else {
-                                Tools.writeToFile(file, "\n");
-                            }
-                            Tools.writeToFile(file, " - SUCCESSFULL\n");
-                        } catch (Throwable t) {
-                            Tools.writeToFile(file, " - FAILED\n");
-
-                            if ((test.getLoop() > 1) && (loop > 0)) {
-                                success = false;
-
-                            } else {
-                                long endTest = System.nanoTime();
-                                System.out.println("- " + file.substring(file.indexOf("TestSuite")) + " << " + (endTest - startFile) / 1e6 + "ms");
-                                failed.add(file);
-                                Assert.fail(test.getNAME() + "  " + expect + "  " + t.getMessage());
-                            }
-                        }
-                    }
-
-                    if (success)
-                        break;
-                    else {
-                        Tools.writeToFile(file, String.format("\n☻☻☻☻☻ %s more tries remain to get result.\n", loop));
-                        Thread.sleep(test.getLoopTimeout() * 1000);
-                    }
-                    HttpEntity entity = response.getEntity();
-                    EntityUtils.consume(entity);
-                }
-            }
-        }
-        long endFile = System.nanoTime();
-        System.out.println("••••• " + file.substring(file.indexOf("TestSuite")) + " << " + (endFile - startFile) / 1e6 + "ms");
+        execTestSuite(file, "test");
     }
 
+    private void execTestSuite(String filename, String type) throws Exception {
 
-    private void getVariables() {
-
-        String name = "all";
-        try {
-            System.out.print("Read Settings/variables.json file - ");
-            File file = new File(api.getClassLoader().getResource("Settings/variables.json").getFile());
-            System.out.println("OK");
-
-            TestParser parser = new TestParser(file.getAbsolutePath(), true);
-            HashMap<String, String> fileMap = new HashMap<String, String>();
-            fileMap = parser.getVariablesTests();
-
-            if ((variables.get(name) != null) && (fileMap.size() > 0)) {
-                HashMap<String, String> tmpMap = variables.get(name);
-                Set<String> keys = fileMap.keySet();
-                for (String key : keys) {
-                    String value = fileMap.get(key);
-                    tmpMap.put(key, value);
-                }
-                setVariable(name, tmpMap);
-            } else if (fileMap.size() > 0)
-                setVariable(name, fileMap);
-        } catch (NullPointerException e) {
-            System.out.println("Settings/variables.json is not found");
-            e.printStackTrace();
-        } catch (Exception e) {
-            e.printStackTrace();
+        String log="";
+        TestParser parser = new TestParser(filename);
+        String file = parser.getTcsuite().getFile();
+        JSONObject[] tests = new JSONObject[]{};
+        switch (type)
+        {
+            case "setup":
+                tests = parser.getTcsuite().getSetUp();
+                log = Tools.printFixLineString("", "=");
+                log = log + Tools.printFixLineString("SETUP", "=");
+                log = log + Tools.printFixLineString("", "=");
+                break;
+            case "teardown":
+                tests = parser.getTcsuite().getTearDown();
+                log = Tools.printFixLineString("", "=");
+                log = log + Tools.printFixLineString("TEARDOWN", "=");
+                log = log + Tools.printFixLineString("", "=");
+                break;
+            case "test":
+                tests = parser.getTcsuite().getTests();
+                log = Tools.printFixLineString("TEST", "*");
+                break;
+            case "global":
+                tests = parser.getTcsuite().getTests();
+                log = Tools.printFixLineString("TEST", "*");
+                break;
         }
-    }
+        JSONParser par = new JSONParser();
 
-    private ArrayList parseCases(ArrayList<String> suites, boolean goal) {
-        ArrayList<Testcase> testcases = new ArrayList<Testcase>();
+        for (JSONObject testObj : tests) {
 
-        for (String file : suites) {
-            TestParser parser = new TestParser(file, goal);
-            HashMap<String, String> fileMap = new HashMap<String, String>();
-            String name = file;
-            try {
 
-                ArrayList<Testcase> cases = parser.parseSuite();
-                if (cases.size() > 0)
-                {
-                    testcases.addAll(cases);
-                    fileMap = parser.getVariablesTests();
-                    if (fileMap.size() > 0)
-                        setVariable(name, fileMap);
-                }
+            TC test = parser.parseTest(testObj);
 
-            } catch (Exception e) {
-                Tools.writeToFile(file, " - SKIPPED");
-                Tools.writeToFile(file, e.getStackTrace().toString());
+            if (!test.getEnabled())
                 continue;
-            }
-        }
-
-        return testcases;
-    }
-
-    private String setupCases(ArrayList<Testcase> testcases) throws Exception {
-
-        for (int k = 0; k < testcases.size(); k++) {
-
-            String log = Tools.printFixLineString("SETUP/TEARDOWN", ">");
-
-            Testcase test = testcases.get(k);
-
-            String file = test.getNAME().split(":")[0];
 
             Tools.writeToFile(file, log + "\n");
-            int loop = test.getLoop();
+            long loop = test.getLoop();
 
             while (loop > 0) {
                 --loop;
 
                 try {
-                Thread.sleep(test.getTimeout());
+                    Thread.sleep(test.getTimeout());
 
-                String test_name = test.getNAME();
-                String name = test_name.substring(0, test_name.lastIndexOf(":"));
+                    test = Tools.replaceVaraibles(test, mergeVariables(file));
 
-                test = Tools.replaceVaraibles(name, test, variables);
+                    long start = System.nanoTime();
+                    HttpResponse rspns = RequestFactory.getRequest(test).sendRequest();
+                    long elapsed = System.nanoTime() - start;
+                    Tools.writeToFile(file, "Elapsed ms --> " + elapsed / 1e6 + "\n", true);
 
-                long start = System.nanoTime();
-                HttpResponse response = RequestFactory.getRequest(test).sendRequest();
-                long elapsed = System.nanoTime() - start;
-                Tools.writeToFile(file, "Elapsed ms --> " + elapsed / 1e6 + "\n", true);
+                    Response response = new Response(rspns);
 
+                    log = Tools.PrintHeaders(rspns, api);
+                    Tools.writeToFile(file, log + "\n");
+                    String body = null;
 
-                log = Tools.PrintHeaders(response, api);
-                Tools.writeToFile(file, log + "\n");
-                String body = null;
-                Object document = null;
-                Assert.assertNotNull("Response is null", response);
-                if (response.getEntity() != null) {
-                    body = EntityUtils.toString(response.getEntity());
-                    document = Configuration.defaultConfiguration().jsonProvider().parse(body);
-                }
+                    Assert.assertNotNull("Response is null", response);
 
-                int status = response.getStatusLine().getStatusCode();
-                log = Tools.printFixLineString("RESPONSE", "-");
-                Tools.writeToFile(file, log + "\n");
-                Tools.writeToFile(file, String.format("STATUS is %d\n", status));
-                Tools.writeToFile(file, "BODY is ");
-                if (body != null) {
-                    Tools.writeToFile(file, body + "\n");
-                }
+                    log = Tools.printFixLineString("RESPONSE", "-");
+                    Tools.writeToFile(file, log + "\n");
+                    Tools.writeToFile(file, String.format("STATUS is %d\n", response.getStatus()));
 
-                log = Tools.printFixLineString("", "-");
-                Tools.writeToFile(file, log + "\n");
+                    if (body != null) {
+                        Tools.writeToFile(file, "BODY is ");
+                        Tools.writeToFile(file, body + "\n");
+                    }
 
-                    for (JSONObject expect : test.getEXPECTATION()) {
+                    log = Tools.printFixLineString("", "-");
+                    Tools.writeToFile(file, log + "\n");
 
-                        int ind = test.getNAME().lastIndexOf(":");
-                        name = name.substring(0, ind);
-                        expect = Tools.replaceVariables(expect, name, variables);
+                    for (JSONObject expect : test.getExpectations()) {
+
+                        expect = (JSONObject) par.parse(Tools.replaceVariable(expect.toString(), mergeVariables(file)));
 
                         Tools.writeToFile(file, expect.toJSONString());
                         HashMap testvar = new HashMap();
                         IExpectationValidator expectedValidator = ExpectedFactory.getExpectedObject(expect);
-                        if (expectedValidator instanceof StatusValidation) {
-                            expectedValidator.validation(status, file);
-                        } else if (expectedValidator != null && document != null) {
 
-                            testvar = expectedValidator.validation(document, file);
+                        if (expectedValidator != null) {
+
+                            testvar = expectedValidator.validation(response, file);
 
                             if (testvar != null) {
-                                if (file.contains("_SetUp") || file.contains("_TearDown")) {
+                                if (file.contains("TestSuite/_SetUp") || file.contains("TestSuite/_TearDown")) {
                                     setVariable("all", testvar);
                                 } else {
                                     setVariable(file, testvar);
@@ -401,58 +284,41 @@ public class DataDrivenParallelTests {
                     break;
                 }catch(VException v)
                 {
-                    failed.add(file);
-                    skipNames.add(file);
+                    if (!type.equalsIgnoreCase("setup") && !type.equalsIgnoreCase("teardown"))
+                        failed.add(file);
+                    else
+                        skipNames.add(file);
                     Tools.writeToFile(file, v.getMessage() + "\n");
-                    System.out.println(test.getNAME() + "\n" + v.getMessage());
-                    Assert.fail(test.getNAME() + "\n" + v.getMessage());
+                    System.out.println(test.getName() + "\n" + v.getMessage());
+                    Assert.fail(test.getName() + "\n" + v.getMessage());
                 }
                 catch (Throwable t) {
                     Tools.writeToFile(file, " - FAILED\n");
                     if ((test.getLoop() > 1) && (loop > 0)) {
                         Tools.writeToFile(file, String.format("\n%s more tries remain to get result.\n", loop));
                     } else {
-                        failed.add(file);
-                        skipNames.add(file);
+                        if (type.equalsIgnoreCase("test"))
+                            failed.add(file);
+                        else  if (type.equalsIgnoreCase("setup"))
+                            skipNames.add(file);
                         Tools.writeToFile(file, t.getMessage() + "\n");
-//                        System.out.println(test.getNAME() + "\n" + t.getMessage());
-                        Assert.fail(test.getNAME() + "\n" + t.getMessage());
+                        Assert.fail(test.getName() + "\n" + t.getMessage());
                     }
 
                     Thread.sleep(test.getLoopTimeout() * 1000);
                 }
             }
         }
-        return null;
     }
 
-    private void SetUpTearDown(String file, TestcaseType type) throws Exception {
+    private synchronized void setVariable(String name, Map<String, String> value) {
 
-        if (!skipNames.contains(file)) {
-            for (int l = 0; l < cases.size(); l++) {
-                Testcase test = cases.get(l);
-
-                if (test.getType().equals(type) && test.getNAME().startsWith(file)) {
-                    ArrayList<Testcase> list = new ArrayList<Testcase>();
-                    list.add(test);
-
-                    String log = Tools.printFixLineString(type.toString(), "▄");
-                    Tools.writeToFile(file, log + "\n");
-                    setupCases(list);
-                    log = Tools.printFixLineString(type.toString() + " end", "*");
-                    Tools.writeToFile(file, log + "\n");
-                }
-            }
-        }
-    }
-
-    private synchronized void setVariable(String name, HashMap<String, String> value) {
-
-        HashMap<String, String> map;
+        Map<String, String> map;
 
         map = variables.get(name);
         if (map == null) {
-            variables.put(name, value);
+            if (value.size() > 0)
+                variables.put(name, value);
         } else {
             Set<String> keys = value.keySet();
             for (String key : keys) {
@@ -462,10 +328,29 @@ public class DataDrivenParallelTests {
                     val = "Bearer " + val;
                 }
 
-                map.put(key, val);
+                map.put(key.toLowerCase(), val);
             }
-            variables.put(name, map);
         }
+    }
+
+    private Map<String, String> mergeVariables(String filename)
+    {
+        if (filename.equalsIgnoreCase("all"))
+            return variables.get("all");
+        HashMap<String, String> vars = new HashMap<>(variables.get("all"));
+        try
+        {
+            HashMap<String, String> map = new HashMap<>(variables.get(filename));
+            Set<String> keys = map.keySet();
+            for (String key : keys) {
+                String val = map.get(key);
+
+                vars.put(key.toLowerCase(), val);
+            }
+        }
+        catch(Exception e)
+        {}
+        return vars;
     }
 
 }

@@ -2,6 +2,7 @@ package com.rest.tests.api.frwm.response;
 
 import com.rest.tests.api.frwm.response.expectation.html.HpathValidation;
 import com.rest.tests.api.frwm.response.expectation.json.XpathValidation;
+import com.rest.tests.api.frwm.testcase.Expectations.Expectation;
 import org.json.simple.JSONObject;
 
 /**
@@ -13,7 +14,7 @@ public class ExpectedFactory {
 
         String type = (String)expect.get("type");
 
-        if (type.toLowerCase().startsWith("j")) {
+        if (type.toLowerCase().startsWith("jpath")) {
             return new XpathValidation(expect);
         }
         else if (type.startsWith("REGEX")) {

@@ -6,7 +6,9 @@ import com.rest.tests.api.frwm.response.expectation.html.*;
 import com.rest.tests.api.frwm.response.looking.ILookingObject;
 import com.rest.tests.api.frwm.response.looking.html.LookingFactory;
 import com.rest.tests.api.frwm.settings.Tools;
+import com.rest.tests.api.frwm.testcase.Response;
 import junit.framework.Assert;
+import org.apache.http.HttpResponse;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -84,9 +86,11 @@ public class HpathValidation implements IExpectationValidator {
     }
 
     @Override
-    public HashMap<String, String> validation(Object response, String file) throws IOException {
+    public HashMap<String, String> validation(Response response, String file) throws IOException {
 
-        ILookingObject detectedObject = LookingFactory.getLookingNode(response, xpath);
+        Object document = response.getDocument();
+
+        ILookingObject detectedObject = LookingFactory.getLookingNode(document, xpath);
 
         if (!type.equalsIgnoreCase("hxnull"))
             Assert.assertNotNull("Expected xpath='" + xpath + "' not found", detectedObject);

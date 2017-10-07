@@ -18,8 +18,9 @@ public class Filewalker {
     public ArrayList<String> walk( String dir ) throws UnsupportedEncodingException {
 
 
+//        boolean test = true;
             if (dir == null) {
-
+//                test = true;
                 dir = URLDecoder.decode(classLoader.getResource("TestSuite").getPath(), "utf-8");
             }
             else if (dir.startsWith("TestSuite"))
@@ -34,6 +35,7 @@ public class Filewalker {
             }
             else if ((dir.endsWith("_SetUp")) || (dir.endsWith("_TearDown")))
             {
+//                test = false;
                 return null;
             }
 
@@ -48,10 +50,9 @@ public class Filewalker {
             if ( f.isDirectory() ) {
                 walk( f.getAbsolutePath() );
             }
-            else if (f.getAbsoluteFile().toString().endsWith(".suite") ||
-                    f.getAbsoluteFile().toString().endsWith(".json"))
+            else if (f.getAbsoluteFile().toString().endsWith(".json"))
             {
-                this.list.add(f.getAbsoluteFile().toString());
+                    this.list.add(f.getAbsoluteFile().toString());
             }
             else {
 
@@ -63,11 +64,5 @@ public class Filewalker {
 
     public ArrayList<String> walk() throws UnsupportedEncodingException {
         return walk(null);
-    }
-
-    public static void main(String[] args) throws UnsupportedEncodingException {
-        Filewalker fl = new Filewalker();
-
-        fl.walk(null);
     }
 }

@@ -1,9 +1,6 @@
 package com.rest.tests.api.frwm.testcase;
 
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.*;
 
 /**
  * Created by msolosh on 3/26/2016.
@@ -21,6 +18,8 @@ public class TestcaseFactory {
                 return new DeleteTest();
             case HttpGet.METHOD_NAME:
                 return new GetTest();
+            case HttpPatch.METHOD_NAME:
+                return new PatchTest();
             default:
                 System.out.println("Unknown Method: " + method);
                 break;

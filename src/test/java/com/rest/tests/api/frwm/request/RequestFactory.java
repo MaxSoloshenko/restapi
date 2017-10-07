@@ -1,19 +1,17 @@
 package com.rest.tests.api.frwm.request;
 
+import com.rest.tests.api.frwm.testcase.TC;
 import com.rest.tests.api.frwm.testcase.Testcase;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.*;
 
 /**
  * Created by msolosh on 3/26/2016.
  */
 public abstract class RequestFactory implements IRequest{
 
-    public static IRequest getRequest(Testcase testcase){
+    public static IRequest getRequest(TC testcase){
 
-        switch (testcase.getMETHOD())
+        switch (testcase.getMethod())
         {
             case HttpPost.METHOD_NAME:
                 return new Post(testcase);
@@ -23,8 +21,10 @@ public abstract class RequestFactory implements IRequest{
                 return new Delete(testcase);
             case HttpGet.METHOD_NAME:
                 return new Get(testcase);
+            case HttpPatch.METHOD_NAME:
+                return new Patch(testcase);
             default:
-                System.out.println("Unknown Method: " + testcase.getMETHOD() + " for Test case: " + testcase.getNAME());
+                System.out.println("Unknown Method: " + testcase.getMethod() + " for Test case: " + testcase.getName());
         }
 
         return null;

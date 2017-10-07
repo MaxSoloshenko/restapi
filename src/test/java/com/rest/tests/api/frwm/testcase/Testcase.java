@@ -9,7 +9,7 @@ import java.util.HashMap;
 /**
  * Created by msolosh on 3/25/2016.
  */
-abstract public class Testcase implements ITestCase{
+abstract public class Testcase{
 
 
     private String NAME;
@@ -130,7 +130,7 @@ abstract public class Testcase implements ITestCase{
         this.URL = URL;
     }
 
-    @Override
+//    @Override
     public ArrayList<JSONObject> getEXPECTATION() {
         return EXPECTATIONS;
     }

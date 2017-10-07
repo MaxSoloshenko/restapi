@@ -1,6 +1,10 @@
 package com.rest.tests.api.frwm.settings;
 
+import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.rest.tests.api.frwm.testcase.TCSuite;
 import org.apache.commons.lang3.ArrayUtils;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.ini4j.Profile;
 import org.ini4j.Wini;
 import org.json.simple.JSONArray;
@@ -8,15 +12,9 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by msolosh on 1/25/2016.
@@ -29,6 +27,8 @@ public class Settings {
 
     private static final String properties = "Settings/APIUrls.properties";
     private static final String headers = "Settings/logging.frmw";
+    private static final String variables = "Settings/variables.json";
+    private String[] tags = null;
 
     Settings(String fileName) throws IOException {
 
@@ -46,14 +46,23 @@ public class Settings {
         try {
             path = URLDecoder.decode(classLoader.getResource(properties).getFile().toString(), "utf-8");
         } catch (Exception e) {
-//            System.out.println("FAILED");
-//            System.out.println("Resource folder is not found!");
             e.printStackTrace();
         }
 
         File file = new File(path);
 
         this.resource = new Wini(file);
+
+        String tags = System.getenv("REST_APP_TAGS");
+        if (tags != null && tags != "" && !tags.equalsIgnoreCase("all"))
+        {
+            this.tags = tags.split(",");
+        }
+    }
+
+    public String[] getTags()
+    {
+        return tags;
     }
 
     public ClassLoader getClassLoader() {
@@ -61,7 +70,6 @@ public class Settings {
     }
 
     public String getKey(String section, String key){
-
 
         if (System.getenv("REST_APP_API_" + key) != null)
             return System.getenv("REST_APP_API_" + key);
@@ -171,5 +179,39 @@ public class Settings {
             list.put(key, asd.get(key));
         }
         return list;
+    }
+
+    public Map<String, String> getGlobalVariables() {
+        ObjectMapper mapper = new ObjectMapper();
+
+
+        try {
+            String vr = URLDecoder.decode(classLoader.getResource(variables).getFile().toString(), "utf-8");
+            JSONParser par = new JSONParser();
+            Object obj = par.parse(new FileReader(vr));
+            JSONObject jsonObject = (JSONObject)obj;
+
+            Variables vars = mapper.readValue(jsonObject.toJSONString(), Variables.class);
+            HashMap<String, String> var = new HashMap<>(vars.getVariables());
+            HashMap<String, String> fin = new HashMap<>();
+
+            for (String key : var.keySet()) {
+                String value = Tools.generateVariables((String)var.get(key));
+                fin.put(key.toLowerCase(), value);
+            }
+
+            return fin;
+
+        } catch (JsonGenerationException e) {
+            e.printStackTrace();
+        } catch (JsonMappingException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            System.out.println("Test case global variables file is not found: " + variables);
+            e.printStackTrace();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

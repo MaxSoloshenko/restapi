@@ -5,42 +5,44 @@ import com.rest.tests.api.frwm.testcase.Testcase;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPatch;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.json.simple.JSONObject;
-import com.rest.tests.api.frwm.request.Tools;
 
 import java.io.IOException;
-import java.net.URLDecoder;
 import java.util.Iterator;
 
 /**
  * Created by msolosh on 3/25/2016.
  */
-public class Get implements IRequest{
+public class Patch implements IRequest {
 
     TC test;
 
-    public Get(TC testcase){
+    public Patch(TC testcase){
         this.test = testcase;
     }
 
+
     @Override
-    public HttpResponse sendRequest()  {
+    public HttpResponse sendRequest(){
+
+        HttpPatch put = new HttpPatch(test.getUrl());
         HttpResponse res = null;
+
         try {
             RequestConfig.Builder requestConfig = RequestConfig.custom();
             requestConfig = requestConfig.setConnectTimeout(30 * 1000);
             requestConfig = requestConfig.setConnectionRequestTimeout(30 * 1000);
 
-            HttpClient httpclient = HttpClientBuilder.create().setRedirectStrategy(new LaxRedirectStrategy()).build();
+            HttpClientBuilder builder = HttpClientBuilder.create();
+            builder.setDefaultRequestConfig(requestConfig.build());
+            HttpClient httpclient = builder.build();
 
 
-            HttpGet getRequest = new HttpGet(URLDecoder.decode(test.getUrl().replace("\\/", "/").replace("\\",""), "UTF-8"));
-
-            getRequest.setHeader("Accept", "application/json");
-            getRequest.setHeader("Content-Type", "application/json");
+            put.setHeader("Accept", "application/json");
+            put.setHeader("Content-Type", "application/json");
             if (!test.getPARAMS().toJSONString().equalsIgnoreCase("{}")) {
 
                 JSONObject params = test.getPARAMS();
@@ -49,15 +51,25 @@ public class Get implements IRequest{
                 while (iter.hasNext()){
                     String key = (String)iter.next();
 
-                    getRequest.addHeader(key, (String)params.get(key));
+                    put.addHeader(key, (String)params.get(key));
                 }
             }
 
-            res = httpclient.execute(getRequest);
+//            if (!test.getBody().toJSONString().equalsIgnoreCase("{}"))
+            if (test.getBody() != null)
+            {
+                StringEntity entity = new StringEntity(test.getBody().toString());
+                put.setEntity(entity);
+            }
+
+            res = httpclient.execute(put);
 
         } catch (IOException e) {
+            PrintOut print = new PrintOut();
+            print.Print(put);
             e.printStackTrace();
         }
+
         return res;
     }
 }

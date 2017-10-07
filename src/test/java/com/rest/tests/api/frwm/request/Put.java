@@ -1,5 +1,6 @@
 package com.rest.tests.api.frwm.request;
 
+import com.rest.tests.api.frwm.testcase.TC;
 import com.rest.tests.api.frwm.testcase.Testcase;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -18,9 +19,9 @@ import java.util.Iterator;
  */
 public class Put implements IRequest {
 
-    Testcase test;
+    TC test;
 
-    public Put(Testcase testcase){
+    public Put(TC testcase){
         this.test = testcase;
     }
 
@@ -28,7 +29,7 @@ public class Put implements IRequest {
     @Override
     public HttpResponse sendRequest(){
 
-        HttpPut put = new HttpPut(test.getURL());
+        HttpPut put = new HttpPut(test.getUrl());
         HttpResponse res = null;
 
         try {
@@ -43,7 +44,7 @@ public class Put implements IRequest {
 
             put.setHeader("Accept", "application/json");
             put.setHeader("Content-Type", "application/json");
-            if (test.getPARAMS() != null) {
+            if (!test.getPARAMS().toJSONString().equalsIgnoreCase("{}")) {
 
                 JSONObject params = test.getPARAMS();
 
@@ -55,9 +56,10 @@ public class Put implements IRequest {
                 }
             }
 
-            if (test.getBODY() != null)
+//            if (!test.getBody().toJSONString().equalsIgnoreCase("{}"))
+            if (test.getBody() != null)
             {
-                StringEntity entity = new StringEntity(test.getBODY());
+                StringEntity entity = new StringEntity(test.getBody().toString());
                 put.setEntity(entity);
             }
 

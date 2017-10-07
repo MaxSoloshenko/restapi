@@ -1,5 +1,6 @@
 package com.rest.tests.api.frwm.request;
 
+import com.rest.tests.api.frwm.testcase.TC;
 import com.rest.tests.api.frwm.testcase.Testcase;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -22,17 +23,17 @@ import java.util.Iterator;
  */
 public class Post implements IRequest {
 
-    Testcase test;
+    TC test;
     ClassLoader classLoader = getClass().getClassLoader();
 
-    public Post(Testcase testcase){
+    public Post(TC testcase){
         this.test = testcase;
     }
 
     @Override
     public HttpResponse sendRequest(){
 
-        HttpPost post = new HttpPost(test.getURL());
+        HttpPost post = new HttpPost(test.getUrl());
         HttpResponse res = null;
 
         try {
@@ -44,7 +45,7 @@ public class Post implements IRequest {
             builder.setDefaultRequestConfig(requestConfig.build());
             HttpClient httpclient = builder.build();
 
-            if (test.getPARAMS() != null) {
+            if (!test.getPARAMS().toJSONString().equalsIgnoreCase("{}")) {
 
                 JSONObject params = test.getPARAMS();
 
@@ -56,7 +57,7 @@ public class Post implements IRequest {
                 }
             }
 
-            if (test.getBOUNDARY() != null) {
+            if (!test.getBOUNDARY().toJSONString().equalsIgnoreCase("{}")) {
 
                 JSONObject boundary = test.getBOUNDARY();
                 MultipartEntityBuilder  entity = MultipartEntityBuilder.create();
@@ -79,7 +80,6 @@ public class Post implements IRequest {
 
                         if (!file.exists()) {
                             file = new File(classLoader.getResource("SourceFiles/").getPath() + source);
-//                            System.out.println("Your file " + value + " was not found. default.pdf will be used with your file name.");
                         }
                         value = file.getAbsolutePath();
 
@@ -118,9 +118,10 @@ public class Post implements IRequest {
             }
             post.setHeader("Accept", "application/json, text/plain, */*");
 
-            if (test.getBODY() != null)
+            if (test.getBody() != null)
+//            if (!test.getBody().toJSONString().equalsIgnoreCase("{}"))
             {
-                StringEntity entity = new StringEntity(test.getBODY());
+                StringEntity entity = new StringEntity(test.getBody().toString());
                 post.setEntity(entity);
             }
 
