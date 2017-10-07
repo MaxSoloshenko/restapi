@@ -19,6 +19,7 @@ public class TCSuite {
     public JSONObject[]  TearDown = new JSONObject[]{};
     public JSONObject[]  Tests = new JSONObject[]{};
     public String  File = "";
+    public JSONObject Headers;
 
 
     public String[] getTags() {

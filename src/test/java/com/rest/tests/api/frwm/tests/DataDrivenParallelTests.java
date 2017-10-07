@@ -5,25 +5,17 @@ import com.rest.tests.api.frwm.listeners.ResultListeners;
 import com.rest.tests.api.frwm.request.RequestFactory;
 import com.rest.tests.api.frwm.response.ExpectedFactory;
 import com.rest.tests.api.frwm.response.IExpectationValidator;
-import com.rest.tests.api.frwm.response.StatusValidation;
 import com.rest.tests.api.frwm.settings.*;
-import com.rest.tests.api.frwm.testcase.Expectations.Expectation;
 import com.rest.tests.api.frwm.testcase.Response;
 import com.rest.tests.api.frwm.testcase.TC;
-import com.rest.tests.api.frwm.testcase.Testcase;
-import com.rest.tests.api.frwm.testcase.TestcaseType;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.junit.Assert;
 import org.testng.ITestResult;
 import org.testng.Reporter;
 import org.testng.annotations.*;
-import com.jayway.jsonpath.Configuration;
 
-import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -48,7 +40,7 @@ public class DataDrivenParallelTests {
         setVariable("all", api.getGlobalVariables());
 
         Filewalker fll = new Filewalker();
-        ArrayList<String> setup = fll.walk("TestSuite/_SetUp/");
+        ArrayList<String> setup = fll.walk("TestSuite/");
 
         for (String filename : setup)
         {
@@ -61,7 +53,7 @@ public class DataDrivenParallelTests {
 
         for (String filename : files)
         {
-            if (filename.contains("TestSuite/_SetUp") || filename.contains("TestSuite/_TearDown"))
+            if (filename.contains("TestSuite") || filename.contains("TestSuite/_TearDown"))
                 continue;
             TestParser suite = new TestParser(filename);
 
@@ -248,9 +240,9 @@ public class DataDrivenParallelTests {
                     Tools.writeToFile(file, log + "\n");
                     Tools.writeToFile(file, String.format("STATUS is %d\n", response.getStatus()));
 
-                    if (body != null) {
+                    if (response.getDocument() != null) {
                         Tools.writeToFile(file, "BODY is ");
-                        Tools.writeToFile(file, body + "\n");
+                        Tools.writeToFile(file, response.getDocument() + "\n");
                     }
 
                     log = Tools.printFixLineString("", "-");
@@ -269,7 +261,7 @@ public class DataDrivenParallelTests {
                             testvar = expectedValidator.validation(response, file);
 
                             if (testvar != null) {
-                                if (file.contains("TestSuite/_SetUp") || file.contains("TestSuite/_TearDown")) {
+                                if (file.contains("TestSuite") || file.contains("TestSuite/_TearDown")) {
                                     setVariable("all", testvar);
                                 } else {
                                     setVariable(file, testvar);
