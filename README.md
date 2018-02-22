@@ -325,7 +325,7 @@ Real file SourceFiles/default.pdf content will be used.
 ```
 
 ### Where to find test reports?
-JUnit report - build/test-output/junittrport/
+JUnit report - build/test-output/junitreport/
 
 TestNG report - build/test-output/
 
