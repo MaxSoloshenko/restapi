@@ -315,7 +315,8 @@ As well as in first case you can replace it with known value.
 ### How can I upload files in my requests?
 Currently it supports File Entity in requests. Couple lines in test case will let you request know about it.
 Real file must beeng presented in folder resources/SourceFiles
-In case you do not care about file content then you can use any filename in your case. Real file SourceFiles/default.pdf content will be used.
+In case you do not care about file content then you can use any filename in your case. 
+Real file SourceFiles/default.pdf content will be used.
 ```
 "Params": {
     "filename": "${filename}"
