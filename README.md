@@ -323,3 +323,13 @@ Real file SourceFiles/default.pdf content will be used.
 },
 "FileEntity": "${filename}"
 ```
+
+### Where to find test reports?
+JUnit report - build/test-output/junittrport/
+TestNG report - build/test-output/
+
+Full test output you can find in build/resources/TestSuite/YOURCASELOCATION.log
+
+
+### How to integrate framework with Jenkins CI?
+As any other TestNG based framework.
