@@ -7,7 +7,7 @@ To be able to operate with framework your system should have next tools:
 
 ##FAQ
 ###How to run test cases?
-command line: gradle ddtest
+command line: gradle runTests
 
 Couple system's variables should be established in a system prior:
 * REST_APP_TAGS (smoke, users)
@@ -48,9 +48,9 @@ json file with name *.json
   "Variables": {
     "variable1":""
  },
-  "Tests": [
-  ],
   "SetUp": [
+  ],
+  "Tests": [
   ],
   "TearDown": [
   ]
@@ -58,7 +58,7 @@ json file with name *.json
 
 Where 
 
-* Microservice is a name of service that is mapped with url and map. If name is not mapped with any name in file APIUrls.properties then [base] section will be used.
+* Microservice is a name of service that is mapped with url and map. If name is not mapped with any name in file Settings/APIUrls.properties then [base] section will be used or empty.
 * Tags is a array of tags to distinguish test cases and test suites
 * Variables contain a list of variables for this scope of tests
 * Tests - is array of test cases
@@ -106,10 +106,10 @@ Expectation of status
   "value":201
 }```
 
-Expectation of xpath
+Expectation of json path
 
 ```{
-  "type":"XPATH",
+  "type":"JPathPATH",
   "xpath": "$.totalHits",
   "value": "1"
 }```
@@ -117,32 +117,58 @@ Expectation of xpath
 Expectation of arrays equality 
 
 ```{
-  "type":"XEQUAL",
-  "xpath":"$.[0].child[?(@.name=~/%filename/)].status",
+  "type":"JPathEQUAL",
+  "xpath":"$.[0].child[?(@.name=~/${filename}/)].status",
   "value":["DONE"]
 }```
 
 Expectation the array contains
 
 ```{
-  "type": "XCONTAINS",
+  "type": "JPathCONTAINS",
   "xpath": "$.[*].id",
-  "value": ["%groupId_1","%groupId_2","%groupId_3"]
+  "value": ["${groupId_1}","${groupId_2}","${groupId_3}"]
 }```
 
 Expectation of NULL object
 
 ```{
-  "type": "XNULL",
-  "xpath": "$..[?(@.projectId==%projectId)].active"
+  "type": "JPathNULL",
+  "xpath": "$..[?(@.projectId =~ /${projectId}/)].active"
 }```
 
 Expectation the array is bigger than
 
 ```{
-  "type": "XSIZEGREATER",
+  "type": "JPathGREATER",
   "xpath": "$.metadataResponseBean[*]",
   "value": 0
+}```
+
+Expectation the array is fewer than
+
+```{
+  "type": "JPathSIZELESS",
+  "xpath": "$.metadataResponseBean[*]",
+  "value": 3
+}```
+
+
+Expectation the boolean value
+
+```{
+  "type": "JPathBOOLEAN",
+  "xpath": "$.metadataResponseBean[0].active",
+  "value": false
+}```
+
+
+Expectation the integer value
+
+```{
+  "type": "JPathINTEGER",
+  "xpath": "$.metadataResponseBean[0].total",
+  "value": 5
 }```
 
 Expectation the regex in body
@@ -160,15 +186,15 @@ There are two types of variables
 * global
 * local
 Global variables can be used across all test cases. To set it
-* user variables.json file in folder TestSuite
-* set variable in scope of SetUp cases
+* user variables.json file in folder TestSuite/Settings
+* set variable in scope of json file
 
 Local variables are set inside of each test suite file. Look at Variables option. Other way to set variable is on fly.
 
 Set variable groupId with dynamic value
 
 ```{
-  "type": "XVARIABLE",
+  "type": "JpathVARIABLE",
   "xpath": "$.groupId",
   "value": "groupId"
 }```
@@ -176,7 +202,7 @@ Set variable groupId with dynamic value
 Variable as regex in body
 
 ```{
-  "type": "REGEXEQUAL",
+  "type": "REGEXVARIABLE",
   "regex": "([a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})",
   "value": "regId"
 }```
@@ -188,20 +214,84 @@ Variable can be used in URL, Params, Body, Expectations. In next case we can see
 ```{
   "Name": "check non-active project",
   "Method": "GET",
-  "URL": "%projectId",
+  "URL": "${projectId}",
   "Tags":["smoke"],
   "Params": {
-    "Authorization": "%token"
+    "Authorization": "${token}"
  },
   "Expectations": [
     {
       "type":"XPATH",
       "xpath":"$.projectInfo.emailId",
-      "value":"%login"
+      "value":"${login}"
  }
   ]
 }```
 
 ###What macros are there for variables?
+* {G-U-I-D} - will generate guid
 * {GUID} - will generate guid without "-"
 * {DATE(yyyy-MM-dd'T'HH:mm:ss.SSS'Z')} - will generate date in given format
+* {emailh} - will generate random string to use as part of email address
+
+###Request template system for tests.
+In order to reduce number of repeating for test cases you are able to keep request template and use it in your cases with variations.
+Template location is 'resources/Templates/'
+That is a simple json file like createRole.json
+
+'''
+{
+  "Method": "POST",
+  "URL": "/api/projects/${projectId}/contentPermissionGroups",
+  "Body": {
+    "permissionGroupType": "REVIEWER",
+    "name": "${role}"
+  },
+  "Params": {
+    "Authorization": "${token}"
+  }
+}
+'''
+
+Now your test cases json will look like
+
+'''
+{
+  "Name": "create Role",
+  "Template": {
+    "source": "createRole.json",
+    "role":"${roleName}",
+    "$.Body.permissionGroupType":"${roleType}"
+  },
+  "Expectations": [
+    {
+      "type": "STATUS",
+      "value": 201
+    },
+    {
+      "type": "jpathVARIABLE",
+      "xpath": "$.id",
+      "value": "roleId"
+    }
+  ]
+}
+'''
+
+Template section in your test case will be replaced with template file and couple manipulations will be done on it.
+1. role variable will be replaces with "${roleName}". Where roleName is a variable in your case. Or you can replace it with known value like
+"role":"knownNameOfRole",
+2. according to $.Body.permissionGroupType path value will be replaced with variable ${roleType}
+As well as in first case you can replace it with known value.
+
+
+###How can I upload files in my requests?
+Currently it supports File Entity in requests. Couple lines in test case will let you request know about it.
+Real file must beeng presented in folder resources/SourceFiles
+In case you do not care about file content then you can use any filename in your case. Real file SourceFiles/default.pdf content will be used.
+
+'''
+"Params": {
+    "filename": "${filename}"
+},
+"FileEntity": "${filename}"
+'''

@@ -1,0 +1,7 @@
+{
+  "Environment": "Dev",
+  "Variables": {
+    "login": "login@mailinator.com",
+    "invalid": "invalid"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "Microservice": "geo-codes",
+  "Tags": [
+    "chucknorris",
+    "smoke"
+  ],
+  "Tests": [
+    {
+      "Name": "Get chuck's categories",
+      "Method": "GET",
+      "URL": "https://api.chucknorris.io/jokes/categories",
+      "Expectations": [
+        {
+          "type": "JPathCONTAINS",
+          "xpath": "$.[*]",
+          "value": [
+            "movie"
+          ]
+        },
+        {
+          "type": "JPathVARIABLE",
+          "xpath": "$.[5]",
+          "value": "category"
+        }
+      ]
+    },
+    {
+      "Name": "Get chuck's joke for animal category",
+      "Method": "GET",
+      "URL": "https://api.chucknorris.io/jokes/random?category=${category}",
+      "Expectations": [
+        {
+          "type": "JPathPATH",
+          "xpath": "$.category.[0]",
+          "value": "${category}"
+        },
+        {
+          "type": "JPathVARIABLE",
+          "xpath": "$.value",
+          "value": "joke"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "Microservice": "empty",
+  "Tags": [
+    "sometests",
+    "smoke"
+  ],
+  "Variables": {
+    "key": "{GUID}",
+    "value": "{G-U-I-D}",
+    "key_upd": "{GUID}",
+    "value_upd": "{G-U-I-D}"
+  },
+  "Tests": [
+    {
+      "Name": "POST key/value pair",
+      "Method": "POST",
+      "URL": "https://api.myjson.com/bins",
+      "Body": {
+        "${key}": "${value}"
+      },
+      "Expectations": [
+        {
+          "type": "STATUS",
+          "value": 201
+        },
+        {
+          "type": "REGEXVARIABLE",
+          "regex": "https:\/\/(.*)\"",
+          "value": "url"
+        }
+      ]
+    },
+    {
+      "Name": "Get key/value pair",
+      "Method": "GET",
+      "URL": "https://${url}",
+      "Expectations": [
+        {
+          "type": "STATUS",
+          "value": 200
+        },
+        {
+          "type": "JPathPATH",
+          "xpath": "$.${key}",
+          "value": "${value}"
+        }
+      ]
+    },
+    {
+      "Name": "Update key/value pair",
+      "Method": "PUT",
+      "URL": "https://${url}",
+      "Body": {
+        "${key_upd}": "${value_upd}"
+      },
+      "Expectations": [
+        {
+          "type": "STATUS",
+          "value": 200
+        },
+        {
+          "type": "JPathPATH",
+          "xpath": "$.${key_upd}",
+          "value": "${value_upd}"
+        }
+      ]
+    },
+    {
+      "Name": "Get key/value pair updated",
+      "Template": {
+        "source":"getKeyValue.json"
+      },
+      "Expectations": [
+        {
+          "type": "STATUS",
+          "value": 200
+        },
+        {
+          "type": "JPathPATH",
+          "xpath": "$.${key_upd}",
+          "value": "${value_upd}"
+        }
+      ]
+    }
+  ]
+}

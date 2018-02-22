@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<suite name="API Gateway" data-provider-thread-count="10" parallel="methods">
+<suite name="API Gateway" data-provider-thread-count="100" parallel="methods">
 
     <test name="Tests">
         <classes>
-            <class name="com.rest.tests.api.frwm.tests.DataDrivenParallelTests" />
+            <class name="com.rest.tests.api.frmw.DataDrivenParallelTests" />
         </classes>
     </test>
 </suite>
