@@ -1,12 +1,12 @@
-#Testing API integration framework
+# Testing API integration framework
 
-##Requirements
+## Requirements
 To be able to operate with framework your system should have next tools:
 * java 1.8 and above http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
 * gradle https://gradle.org/gradle-download/
 
-##FAQ
-###How to run test cases?
+## FAQ
+### How to run test cases?
 command line: gradle runTests
 
 Couple system's variables should be established in a system prior:
@@ -14,15 +14,15 @@ Couple system's variables should be established in a system prior:
 * REST_APP_API_URL (http://some-endpoint.com)
 * REST_APP_API_PORT (80)
 
-###Where test cases have to be located?
+### Where test cases have to be located?
 All cases have to be located in framework resource folder test\resources\TestSuite\
 
 Sub-folders are welcome.
 
-###Is there SetUp and TearDown functionality?
+### Is there SetUp and TearDown functionality?
 There are two levels of SetUp/TearDown functionality: global and local
 
-####Global SetUp/TearDown
+#### Global SetUp/TearDown
 Cases will be run once before and after ALL cases.
 
 SetUp cases should be located under folder test\resources\TestSuite\_SetUp
@@ -31,7 +31,7 @@ TearDown cases should be in folder test\resources\TestSuite\_TearDown
 
 All variables are created in that case are Global.
 
-####Local SetUp/TearDown
+#### Local SetUp/TearDown
 Sometimes we need to run one/few cases before our test cases. Then we have options SetUp/TearDown in our .json files.
 Simple define this sections in your test .json file as
 ```"SetUp":[]``` and ```"TearDown":[]```
@@ -39,10 +39,11 @@ Simple define this sections in your test .json file as
 Inside those sections tests are expected. See question "What is a template for test case?"
 
 
-###What is a file format for cases?
+### What is a file format for cases?
 json file with name *.json
 
-```{
+```
+{
   "Microservice": "",
   "Tags":[""],
   "Variables": {
@@ -54,23 +55,24 @@ json file with name *.json
   ],
   "TearDown": [
   ]
-}```
+}
+```
 
-Where 
-
+Where
 * Microservice is a name of service that is mapped with url and map. If name is not mapped with any name in file Settings/APIUrls.properties then [base] section will be used or empty.
 * Tags is a array of tags to distinguish test cases and test suites
 * Variables contain a list of variables for this scope of tests
 * Tests - is array of test cases
 
-###What is a template for test case?
-```{
+### What is a template for test case?
+```
+{
   "Name": "",
   "Method": "",
   "URL": "",
   "Params": {
     "Authorization": ""
- },
+  },
   "Timeout": 1,
   "Loop": 1,
   "LoopTimeout": 1,
@@ -82,9 +84,10 @@ Where
       "type": "",
       "xpath": "",
       "value": ""
- }
+    }
   ]
-}```
+}
+```
 
 Where
 
@@ -98,88 +101,108 @@ Where
 * Body is a request body as json object
 * Expectations is array of expected results
 
-###What expectations are there?
+### What expectations are there?
 Expectation of status
 
-```{
+```
+{
   "type":"STATUS",
   "value":201
-}```
+}
+```
 
 Expectation of json path
 
-```{
+```
+{
   "type":"JPathPATH",
   "xpath": "$.totalHits",
   "value": "1"
-}```
+}
+```
 
-Expectation of arrays equality 
+Expectation of arrays equality
 
-```{
+```
+{
   "type":"JPathEQUAL",
   "xpath":"$.[0].child[?(@.name=~/${filename}/)].status",
   "value":["DONE"]
-}```
+}
+```
 
 Expectation the array contains
 
-```{
+```
+{
   "type": "JPathCONTAINS",
   "xpath": "$.[*].id",
   "value": ["${groupId_1}","${groupId_2}","${groupId_3}"]
-}```
+}
+```
 
 Expectation of NULL object
 
-```{
+```
+{
   "type": "JPathNULL",
   "xpath": "$..[?(@.projectId =~ /${projectId}/)].active"
-}```
+}
+```
 
 Expectation the array is bigger than
 
-```{
+```
+{
   "type": "JPathGREATER",
   "xpath": "$.metadataResponseBean[*]",
   "value": 0
-}```
+}
+```
 
 Expectation the array is fewer than
 
-```{
+```
+{
   "type": "JPathSIZELESS",
   "xpath": "$.metadataResponseBean[*]",
   "value": 3
-}```
+}
+```
 
 
 Expectation the boolean value
 
-```{
+```
+{
   "type": "JPathBOOLEAN",
   "xpath": "$.metadataResponseBean[0].active",
   "value": false
-}```
+}
+```
 
 
 Expectation the integer value
 
-```{
+```
+{
   "type": "JPathINTEGER",
   "xpath": "$.metadataResponseBean[0].total",
   "value": 5
-}```
+}
+```
 
 Expectation the regex in body
 
-```{
+```
+{
   "type": "REGEXEQUAL",
   "regex": "([a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})",
   "value": "somevalue"
-}```
+}
+```
 
-###How to use variables in tests?
+### How to use variables in tests?
 Set variables
 
 There are two types of variables
@@ -193,25 +216,30 @@ Local variables are set inside of each test suite file. Look at Variables option
 
 Set variable groupId with dynamic value
 
-```{
+```
+{
   "type": "JpathVARIABLE",
   "xpath": "$.groupId",
   "value": "groupId"
-}```
+}
+```
 
 Variable as regex in body
 
-```{
+```
+{
   "type": "REGEXVARIABLE",
   "regex": "([a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})",
   "value": "regId"
-}```
+}
+```
 
-####Use variables
+#### Use variables
 
 Variable can be used in URL, Params, Body, Expectations. In next case we can see variables: projectId, token, login
 
-```{
+```
+{
   "Name": "check non-active project",
   "Method": "GET",
   "URL": "${projectId}",
@@ -224,22 +252,23 @@ Variable can be used in URL, Params, Body, Expectations. In next case we can see
       "type":"XPATH",
       "xpath":"$.projectInfo.emailId",
       "value":"${login}"
- }
+    }
   ]
-}```
+}
+```
 
-###What macros are there for variables?
+### What macros are there for variables?
 * {G-U-I-D} - will generate guid
 * {GUID} - will generate guid without "-"
 * {DATE(yyyy-MM-dd'T'HH:mm:ss.SSS'Z')} - will generate date in given format
 * {emailh} - will generate random string to use as part of email address
 
-###Request template system for tests.
+### Request template system for tests.
 In order to reduce number of repeating for test cases you are able to keep request template and use it in your cases with variations.
 Template location is 'resources/Templates/'
 That is a simple json file like createRole.json
 
-'''
+```
 {
   "Method": "POST",
   "URL": "/api/projects/${projectId}/contentPermissionGroups",
@@ -251,11 +280,10 @@ That is a simple json file like createRole.json
     "Authorization": "${token}"
   }
 }
-'''
+```
 
 Now your test cases json will look like
-
-'''
+```
 {
   "Name": "create Role",
   "Template": {
@@ -275,7 +303,7 @@ Now your test cases json will look like
     }
   ]
 }
-'''
+```
 
 Template section in your test case will be replaced with template file and couple manipulations will be done on it.
 1. role variable will be replaces with "${roleName}". Where roleName is a variable in your case. Or you can replace it with known value like
@@ -284,14 +312,13 @@ Template section in your test case will be replaced with template file and coupl
 As well as in first case you can replace it with known value.
 
 
-###How can I upload files in my requests?
+### How can I upload files in my requests?
 Currently it supports File Entity in requests. Couple lines in test case will let you request know about it.
 Real file must beeng presented in folder resources/SourceFiles
 In case you do not care about file content then you can use any filename in your case. Real file SourceFiles/default.pdf content will be used.
-
-'''
+```
 "Params": {
     "filename": "${filename}"
 },
 "FileEntity": "${filename}"
-'''
+```
