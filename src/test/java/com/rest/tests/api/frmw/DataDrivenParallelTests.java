@@ -161,7 +161,7 @@ public class DataDrivenParallelTests {
             return testList;
         }
         else
-            System.out.println("There is no valid cases for testing.");
+            System.out.println("There is no valid cases for testing. Test TAG is " + System.getenv("REST_APP_TAGS"));
 
         return null;
     }
