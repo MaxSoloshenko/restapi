@@ -208,9 +208,9 @@ Set variables
 There are two types of variables
 * global
 * local
-Global variables can be used across all test cases. To set it
+
+Global variables can be used across all test cases
 * user variables.json file in folder TestSuite/Settings
-* set variable in scope of json file
 
 Local variables are set inside of each test suite file. Look at Variables option. Other way to set variable is on fly.
 
@@ -260,7 +260,7 @@ Variable can be used in URL, Params, Body, Expectations. In next case we can see
 ### What macros are there for variables?
 * {G-U-I-D} - will generate guid
 * {GUID} - will generate guid without "-"
-* {DATE(yyyy-MM-dd'T'HH:mm:ss.SSS'Z')} - will generate date in given format
+* {DATE(yyyy-MM-dd'T'HH:mm:ss.SSS'Z')} - will generate current date in given format
 * {emailh} - will generate random string to use as part of email address
 
 ### Request template system for tests.
@@ -313,8 +313,8 @@ As well as in first case you can replace it with known value.
 
 
 ### How can I upload files in my requests?
-Currently it supports File Entity in requests. Couple lines in test case will let you request know about it.
-Real file must beeng presented in folder resources/SourceFiles
+Currently it supports File Entity in requests. Couple lines in test case will let your request know about it.
+Real file must being presented in folder resources/SourceFiles
 In case you do not care about file content then you can use any filename in your case. 
 Real file SourceFiles/default.pdf content will be used.
 ```
