@@ -25,9 +25,9 @@ There are two levels of SetUp/TearDown functionality: global and local
 #### Global SetUp/TearDown
 Cases will be run once before and after ALL cases.
 
-SetUp cases should be located under folder test\resources\TestSuite\_SetUp
+SetUp cases should be located under folder test\resources\TestSuite\\_SetUp
 
-TearDown cases should be in folder test\resources\TestSuite\_TearDown
+TearDown cases should be in folder test\resources\TestSuite\\_TearDown
 
 All variables are created in that case are Global.
 
