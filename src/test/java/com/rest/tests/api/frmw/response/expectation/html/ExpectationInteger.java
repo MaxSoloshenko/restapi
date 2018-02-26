@@ -18,6 +18,6 @@ public class ExpectationInteger implements IExpectation {
 
     @Override
     public void validate(ILookingObject detected) {
-        assertEquals(expected, detected.getDetected());
+        assertEquals(expected, Integer.parseInt(detected.getDetected().toString()));
     }
 }

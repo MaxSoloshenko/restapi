@@ -1,0 +1,59 @@
+{
+  "Microservice": "empty",
+  "Tags": [
+    "xml"
+  ],
+  "Tests": [
+    {
+      "Name": "Weather in xml",
+      "Method": "GET",
+      "URL": "http://freegeoip.net/xml/4.2.2.2",
+      "Expectations": [
+        {
+          "type": "STATUS",
+          "value": 200
+        },
+        {
+          "type": "hXPATH",
+          "xpath": "//Response/CountryCode",
+          "value": "US"
+        },
+        {
+          "type": "hXPATH",
+          "xpath": "//Response/City",
+          "value": ""
+        },
+        {
+          "type": "hXINTEGER",
+          "xpath": "//Response/MetroCode",
+          "value": 0
+        },
+        {
+          "type": "hXPATH",
+          "xpath": "//Response/Longitude",
+          "value": "-97.822"
+        },
+        {
+          "type": "hXNULL",
+          "xpath": "//Response/UnknownField"
+        }
+      ]
+    },
+    {
+      "Name": "Weather in json",
+      "Method": "GET",
+      "URL": "http://freegeoip.net/json/github.com",
+      "Expectations": [
+        {
+          "type": "STATUS",
+          "value": 200
+        },
+        {
+          "type": "JPathPATH",
+          "xpath": "$.country_code",
+          "value": "US"
+        }
+      ]
+    }
+  ]
+}

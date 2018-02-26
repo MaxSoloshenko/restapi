@@ -26,13 +26,9 @@ public class LookingFactory {
             else if (nodes.length > 1) {
                 return new LookingForArray(nodes);
             }
-            else if (nodes[0] instanceof String) {
-                return new LookingForString(nodes[0].toString());
+            else if (((TagNode) nodes[0]).getText().toString() instanceof String) {
+                return new LookingForString(((TagNode) nodes[0]).getText().toString());
             }
-            else if (nodes[0] instanceof Integer) {
-                return new LookingForInteger((Integer)nodes[0]);
-            }
-
         } catch (Exception e) {
             e.printStackTrace();
             return null;
