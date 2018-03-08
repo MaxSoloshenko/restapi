@@ -43,7 +43,7 @@ public class Tools {
 
     public static TC replaceVaraibles(TC test, Map variables) throws VException, ParseException {
 
-        String file = test.getName().split(":")[0];
+        String file = test.getName().substring(0, test.getName().lastIndexOf(":"));
         JSONParser par = new JSONParser();
 
         Tools.writeToFile(file, "Test: " + test.getName() + "\n");
