@@ -17,6 +17,8 @@ import org.junit.Assert;
 import org.testng.ITestResult;
 import org.testng.Reporter;
 import org.testng.annotations.*;
+
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,7 +42,7 @@ public class DataDrivenParallelTests {
         setVariable("all", api.getGlobalVariables());
 
         Filewalker fll = new Filewalker();
-        ArrayList<String> setup = fll.walk("TestSuite/_SetUp/");
+        ArrayList<String> setup = fll.walk(Paths.get("TestSuite","_SetUp").toString());
 
         System.out.println(">>>> Read TestSuite/_SetUp/ files:");
         if (setup != null)
@@ -59,7 +61,7 @@ public class DataDrivenParallelTests {
         System.out.println(">>>> Parse files:");
         for (String filename : files)
         {
-            if (filename.contains("TestSuite/_SetUp") || filename.contains("TestSuite/_TearDown"))
+            if (filename.contains(Paths.get("TestSuite","_SetUp").toString()) || filename.contains(Paths.get("TestSuite","_TearDown").toString()))
                 continue;
             System.out.print(filename.substring(filename.indexOf("TestSuite/")));
             TestParser suite = new TestParser(filename);
@@ -96,7 +98,7 @@ public class DataDrivenParallelTests {
     public void tearDown() throws Exception {
 
         Filewalker fll = new Filewalker();
-        ArrayList<String> setup = fll.walk("TestSuite/_TearDown/");
+        ArrayList<String> setup = fll.walk(Paths.get("TestSuite","_TearDown").toString());
 
         if (setup != null)
         {
