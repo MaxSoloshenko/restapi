@@ -112,7 +112,7 @@ public class TestParser {
                     }
                     catch(PathNotFoundException e)
                     {
-                        doc.put(key.substring(0, key.lastIndexOf(".")), key.substring(key.lastIndexOf(".")), value);
+                        doc.put(key.substring(0, key.lastIndexOf(".")), key.substring(key.lastIndexOf(".") + 1), value);
                     }
                     body = new Gson().toJson(doc.read("$"));
                 }
