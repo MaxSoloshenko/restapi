@@ -29,7 +29,7 @@ public class TestParser {
     private String file;
     private TCSuite tcsuite;
 
-    public TestParser(String filename) throws IOException, ParseException {
+    public TestParser(String filename) throws Exception {
         this.file = filename;
         ObjectMapper mapper = new ObjectMapper();
 
@@ -89,51 +89,58 @@ public class TestParser {
         }
     }
 
-    private JSONObject getTemplate(JSONObject template) throws ParseException, IOException {
-        Path filePath = Paths.get(getClass().getClassLoader().getResource("Templates").getPath(), (String)template.get("source"));
-        JSONParser par = new JSONParser();
-        Object obj = par.parse(new FileReader(filePath.toString()));
-        String body  = obj.toString();
+    private JSONObject getTemplate(JSONObject template) throws Exception {
 
-        if (template.keySet().size() > 1)
+        try
         {
-            Set keysItr = template.keySet();
-            Iterator < String > ir = keysItr.iterator();
-            while(ir.hasNext()) {
-                String key = ir.next().toString();
-                Object value = template.get(key);
-                if (key.startsWith("$."))
-                {
-                    DocumentContext doc = JsonPath.parse(body);
-                    try
+            Path filePath = Paths.get(getClass().getClassLoader().getResource("Templates").getPath(), (String)template.get("source"));
+            JSONParser par = new JSONParser();
+            Object obj = par.parse(new FileReader(filePath.toString()));
+            String body  = obj.toString();
+
+            if (template.keySet().size() > 1)
+            {
+                Set keysItr = template.keySet();
+                Iterator < String > ir = keysItr.iterator();
+                while(ir.hasNext()) {
+                    String key = ir.next().toString();
+                    Object value = template.get(key);
+                    if (key.startsWith("$."))
                     {
-                        doc.read(key);
-                        doc.set(key, value);
+                        DocumentContext doc = JsonPath.parse(body);
+                        try
+                        {
+                            doc.read(key);
+                            doc.set(key, value);
+                        }
+                        catch(PathNotFoundException e)
+                        {
+                            doc.put(key.substring(0, key.lastIndexOf(".")), key.substring(key.lastIndexOf(".") + 1), value);
+                        }
+                        body = new Gson().toJson(doc.read("$"));
                     }
-                    catch(PathNotFoundException e)
+                    else
                     {
-                        doc.put(key.substring(0, key.lastIndexOf(".")), key.substring(key.lastIndexOf(".") + 1), value);
-                    }
-                    body = new Gson().toJson(doc.read("$"));
-                }
-                else
-                {
-                    if (value instanceof Boolean)
-                    {
-                        body = body.replace("\"${" + key + "}\"", value.toString());
-                    }
-                    else if (value instanceof String)
-                    {
-                        body = body.replace("${" + key + "}", value.toString());
+                        if (value instanceof Boolean)
+                        {
+                            body = body.replace("\"${" + key + "}\"", value.toString());
+                        }
+                        else if (value instanceof String)
+                        {
+                            body = body.replace("${" + key + "}", value.toString());
+                        }
                     }
                 }
             }
+
+            Assert.assertNotNull(body, "Template is not found: " + (String)template.get("source"));
+
+            obj = par.parse(body);
+            return (JSONObject)obj;
         }
-
-        Assert.assertNotNull(body, "Template is not found: " + (String)template.get("source"));
-
-        obj = par.parse(body);
-        return (JSONObject)obj;
+        catch (Exception e) {
+            throw new Exception("File cannot be parsed because of Template missed file: " + (String)template.get("source"));
+        }
     }
 
     public HashMap<String, String> getTSVariables()

@@ -234,7 +234,7 @@ public class Tools {
     {
         if (contains == null)
         {
-            return false;
+            return true;
         }
         if (main.length == 0)
         {

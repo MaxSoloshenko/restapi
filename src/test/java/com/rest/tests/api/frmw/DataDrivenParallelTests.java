@@ -45,50 +45,49 @@ public class DataDrivenParallelTests {
         ArrayList<String> setup = fll.walk(Paths.get("TestSuite","_SetUp").toString());
 
         System.out.println(">>>> Read TestSuite/_SetUp/ files:");
-        if (setup != null)
-        {
-            for (String filename : setup)
-            {
-                System.out.println(filename.substring(filename.indexOf("TestSuite/")));
-                TestParser suite = new TestParser(filename);
-                setVariable(filename, suite.getTSVariables());
-                execTestSuite(filename, "global");
+        if (setup != null) {
+            if (setup != null) {
+                for (String filename : setup) {
+                    System.out.println(filename.substring(filename.indexOf("TestSuite/")));
+                    TestParser suite = new TestParser(filename);
+                    setVariable(filename, suite.getTSVariables());
+                    execTestSuite(filename, "global");
+                }
             }
         }
 
         ArrayList<String> files = fll.walk(); //list of files
 
         System.out.println(">>>> Parse files:");
-        for (String filename : files)
-        {
-            if (filename.contains(Paths.get("TestSuite","_SetUp").toString()) || filename.contains(Paths.get("TestSuite","_TearDown").toString()))
-                continue;
-            System.out.print(filename.substring(filename.indexOf("TestSuite/")));
-            TestParser suite = new TestParser(filename);
 
-            if (Tools.arrayContains(suite.getTcsuite().getTags(), api.getTags()))
-            {
-                System.out.print(" - success");
-                suites.add(filename);
-                setVariable(filename, suite.getTSVariables());
-            }
-            else
-            {
-                JSONObject tests[] = suite.getTcsuite().getTests();
-                for(JSONObject test : tests)
-                {
-                    TC tc = suite.parseTest(test);
-                    if (Tools.arrayContains(tc.getTags(), api.getTags()))
-                    {
-                        System.out.print(" - success");
-                        suites.add(filename);
-                        setVariable(filename, suite.getTSVariables());
-                        break;
+        if (files != null) {
+            for (String filename : files) {
+                if (filename.contains(Paths.get("TestSuite", "_SetUp").toString()) || filename.contains(Paths.get("TestSuite", "_TearDown").toString()))
+                    continue;
+                System.out.print(filename.substring(filename.indexOf("TestSuite/")));
+                TestParser suite = new TestParser(filename);
+
+                if (Tools.arrayContains(suite.getTcsuite().getTags(), api.getTags())) {
+                    System.out.print(" - success");
+                    suites.add(filename);
+                    setVariable(filename, suite.getTSVariables());
+                } else {
+                    JSONObject tests[] = suite.getTcsuite().getTests();
+                    for (JSONObject test : tests) {
+                        TC tc = suite.parseTest(test);
+                        if (Tools.arrayContains(tc.getTags(), api.getTags())) {
+                            System.out.print(" - success");
+                            suites.add(filename);
+                            setVariable(filename, suite.getTSVariables());
+                            break;
+                        }
                     }
                 }
+                System.out.println();
             }
-            System.out.println();
         }
+        else
+            System.out.println("NO FILES");
         System.out.println(Tools.printFixLineString("STATS", "*"));
         System.out.println("Files: " + suites.size());
         System.out.println(Tools.printFixLineString("RUN", "*"));

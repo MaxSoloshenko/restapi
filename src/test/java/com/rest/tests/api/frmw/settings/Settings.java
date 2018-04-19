@@ -31,6 +31,7 @@ public class Settings {
     private static final String headers = "Settings/logging.frmw";
     private static final String variables = "Settings/variables.json";
     private String[] tags = null;
+    List<String> response_headers;
 
     Settings(String fileName) throws IOException {
 
@@ -62,6 +63,28 @@ public class Settings {
         {
             this.tags = tags.split(",");
         }
+
+        try {
+            path = URLDecoder.decode(classLoader.getResource(headers).getFile().toString(), "utf-8");
+
+            BufferedReader br = new BufferedReader(new FileReader(path));
+            try {
+                    String line = br.readLine();
+
+                    ArrayList<String> list = new ArrayList<String>();
+                    while (line != null) {
+
+                            list.add(line);
+                            line = br.readLine();
+                        }
+                    response_headers = list;
+                } finally {
+                    br.close();
+                }
+            } catch (Exception e) {
+            System.out.println(headers + " not found in resource folder.");
+            }
+        response_headers = null;
     }
 
     public String[] getTags()
@@ -146,28 +169,7 @@ public class Settings {
     }
 
     public List<String> getHeadersForLogging() {
-        try {
-            String path = URLDecoder.decode(classLoader.getResource(headers).getFile().toString(), "utf-8");
-
-            BufferedReader br = new BufferedReader(new FileReader(path));
-            try {
-                String line = br.readLine();
-
-                ArrayList<String> list = new ArrayList<String>();
-                while (line != null) {
-
-                    list.add(line);
-                    line = br.readLine();
-                }
-                return list;
-            } finally {
-                br.close();
-            }
-        } catch (IOException e) {
-            System.out.println(headers + " not found in resource folder.");
-            e.printStackTrace();
-        }
-        return null;
+        return response_headers;
     }
 
     public HashMap<String, String> getTestcaseSettings(String section) throws IOException {
