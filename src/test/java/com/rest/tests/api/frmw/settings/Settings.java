@@ -82,7 +82,6 @@ public class Settings {
                     br.close();
                 }
             } catch (Exception e) {
-            System.out.println(headers + " not found in resource folder.");
             }
         response_headers = null;
     }

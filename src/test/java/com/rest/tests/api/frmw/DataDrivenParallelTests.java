@@ -268,7 +268,8 @@ public class DataDrivenParallelTests {
                             testvar = expectedValidator.validation(rsps, file);
 
                             if (testvar != null) {
-                                if (file.contains("TestSuite/_TearDown") || file.contains("TestSuite/_SetUp")) {
+                                if (file.contains(Paths.get("TestSuite", "_TearDown").toString())
+                                        || file.contains(Paths.get("TestSuite", "_SetUp").toString())) {
                                     setVariable("all", testvar);
                                 } else {
                                     setVariable(file, testvar);
