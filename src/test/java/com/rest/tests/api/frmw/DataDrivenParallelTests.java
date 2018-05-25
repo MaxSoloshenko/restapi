@@ -1,43 +1,48 @@
 package com.rest.tests.api.frmw;
 
 
-import com.rest.tests.api.frmw.settings.Filewalker;
-import com.rest.tests.api.frmw.settings.Settings;
-import com.rest.tests.api.frmw.settings.TestParser;
-import com.rest.tests.api.frmw.settings.Tools;
 import com.rest.tests.api.frmw.request.RequestFactory;
 import com.rest.tests.api.frmw.response.ExpectedFactory;
 import com.rest.tests.api.frmw.response.IExpectationValidator;
+import com.rest.tests.api.frmw.settings.*;
+import com.rest.tests.api.frmw.settings.TestParser;
 import com.rest.tests.api.frmw.testcase.Response;
 import com.rest.tests.api.frmw.testcase.TC;
+//import listeners.ResultListeners;
 import org.apache.http.HttpResponse;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.junit.Assert;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.ITestResult;
 import org.testng.Reporter;
 import org.testng.annotations.*;
 
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.*;
 
 /**
  * Created by msolosh on 3/25/2016.
  */
+//@Listeners(ResultListeners.class)
 public class DataDrivenParallelTests {
 
+    private DecimalFormat formatter = (DecimalFormat)NumberFormat.getNumberInstance(Locale.US);
     private Settings api;
+    private double full;
+    private double executed = 0;
     private ArrayList<String> suites = new ArrayList<>();
     private ArrayList<String> failed = new ArrayList<>();
     private HashMap<String, Map<String, String>> variables = new HashMap<String, Map<String, String>>();
     private ArrayList<String> skipNames = new ArrayList<>();
+    final Logger logger = LoggerFactory.getLogger(DataDrivenParallelTests.class);
 
     @BeforeClass(alwaysRun = true)
     public void setUp() throws Exception {
-
+        formatter.applyPattern("00.00");
         api = new Settings();
         setVariable("all", api.getGlobalVariables());
 
@@ -45,37 +50,46 @@ public class DataDrivenParallelTests {
         ArrayList<String> setup = fll.walk(Paths.get("TestSuite","_SetUp").toString());
 
         System.out.println(">>>> Read TestSuite/_SetUp/ files:");
-        if (setup != null) {
-            if (setup != null) {
-                for (String filename : setup) {
-                    System.out.println(filename.substring(filename.indexOf("TestSuite/")));
-                    TestParser suite = new TestParser(filename);
-                    setVariable(filename, suite.getTSVariables());
-                    execTestSuite(filename, "global");
-                }
+
+        if (setup != null)
+        {
+            full = setup.size();
+            for (String filename : setup)
+            {
+//                System.out.println(filename.substring(filename.indexOf("TestSuite")));
+                TestParser suite = new TestParser(filename);
+                setVariable(filename, suite.getTSVariables());
+                execTestSuite(filename, "global");
             }
         }
 
         ArrayList<String> files = fll.walk(); //list of files
 
         System.out.println(">>>> Parse files:");
+        if (files != null)
+        {
 
-        if (files != null) {
-            for (String filename : files) {
-                if (filename.contains(Paths.get("TestSuite", "_SetUp").toString()) || filename.contains(Paths.get("TestSuite", "_TearDown").toString()))
+            for (String filename : files)
+            {
+                if (filename.contains(Paths.get("TestSuite","_SetUp").toString()) || filename.contains(Paths.get("TestSuite","_TearDown").toString()))
                     continue;
-                System.out.print(filename.substring(filename.indexOf("TestSuite/")));
+                System.out.print(filename.substring(filename.indexOf("TestSuite")));
                 TestParser suite = new TestParser(filename);
 
-                if (Tools.arrayContains(suite.getTcsuite().getTags(), api.getTags())) {
+                if (Tools.arrayContains(suite.getTcsuite().getTags(), api.getTags()))
+                {
                     System.out.print(" - success");
                     suites.add(filename);
                     setVariable(filename, suite.getTSVariables());
-                } else {
+                }
+                else
+                {
                     JSONObject tests[] = suite.getTcsuite().getTests();
-                    for (JSONObject test : tests) {
+                    for(JSONObject test : tests)
+                    {
                         TC tc = suite.parseTest(test);
-                        if (Tools.arrayContains(tc.getTags(), api.getTags())) {
+                        if (Tools.arrayContains(tc.getTags(), api.getTags()))
+                        {
                             System.out.print(" - success");
                             suites.add(filename);
                             setVariable(filename, suite.getTSVariables());
@@ -159,10 +173,12 @@ public class DataDrivenParallelTests {
                 TestParser parser = new TestParser(suites.get(k));
                 parser.writeTestListIntoFile();
             }
+            full = testList.length;
+            executed = 0;
             return testList;
         }
         else
-            System.out.println("There is no valid cases for testing. Test TAG is " + System.getenv("REST_APP_TAGS"));
+            System.out.println("There is no valid cases for testing.");
 
         return null;
     }
@@ -249,7 +265,16 @@ public class DataDrivenParallelTests {
                     Tools.writeToFile(file, Tools.printFixLineString("RESPONSE", "-") + "\n" +
                             "STATUS: " + status + "\n");
 
-                    Tools.writeToFile(file, "BODY:\n" + rsps.getDocument() + "\n");
+                    if (rsps.getContenType() != null)
+                    {
+
+                        if (!rsps.getContenType().contains("octet-stream"))
+                            Tools.writeToFile(file, "BODY:\n" + rsps.getDocument() + "\n");
+                        else
+                            Tools.writeToFile(file, "BODY: null or binary\n");
+                    }
+                    else
+                        Tools.writeToFile(file, "BODY: null or binary\n");
 
                     log = Tools.printFixLineString("EXPECTATIONS", "-");
 
@@ -268,8 +293,7 @@ public class DataDrivenParallelTests {
                             testvar = expectedValidator.validation(rsps, file);
 
                             if (testvar != null) {
-                                if (file.contains(Paths.get("TestSuite", "_TearDown").toString())
-                                        || file.contains(Paths.get("TestSuite", "_SetUp").toString())) {
+                                if (file.contains(Paths.get("TestSuite","_TearDown").toString()) || file.contains(Paths.get("TestSuite","_SetUp").toString())) {
                                     setVariable("all", testvar);
                                 } else {
                                     setVariable(file, testvar);
@@ -289,6 +313,8 @@ public class DataDrivenParallelTests {
                         Tools.writeToFile(file, String.format("\n%s more tries remain to get result.\n", loop));
                     } else {
                         long endTest = System.nanoTime();
+                        executed = executed + 1;
+                        System.out.print("[" + formatter.format(executed/(full/100)) + "%] ");
                         if (type.equalsIgnoreCase("test")) {
                             System.out.println("••FAILED•• " + file.substring(file.indexOf("TestSuite")) + " << " + (endTest - startFile) / 1e6 + "ms");
                             failed.add(file);
@@ -306,8 +332,10 @@ public class DataDrivenParallelTests {
             }
         }
         long endTest = System.nanoTime();
-        if (type.equalsIgnoreCase("test")) {
-            System.out.println("----OK---- " + file.substring(file.indexOf("TestSuite")) + " << " + (endTest - startFile) / 1e6 + "ms");
+        if (type.equalsIgnoreCase("test") || type.equalsIgnoreCase("global")) {
+            executed = executed + 1;
+            System.out.println("[" + formatter.format(executed/(full/100)) + "%] " +
+                    "----OK---- " + file.substring(file.indexOf("TestSuite")) + " << " + (endTest - startFile) / 1e6 + "ms");
         }
     }
 

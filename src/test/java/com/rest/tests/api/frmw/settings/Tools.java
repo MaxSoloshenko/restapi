@@ -1,6 +1,7 @@
 package com.rest.tests.api.frmw.settings;
 
 import com.rest.tests.api.frmw.testcase.TC;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.json.simple.JSONArray;
@@ -75,7 +76,7 @@ public class Tools {
                         "METHOD: %s\n" ,
                 test.getUrl(),
                 test.getMethod()
-                );
+        );
 
         if (test.getBody() != null)
             res = res + "BODY: " + test.getBody().toString() + "\n";
@@ -96,19 +97,19 @@ public class Tools {
 
         if (value != null)
         {
-                Matcher m = p.matcher(value);
+            Matcher m = p.matcher(value);
 
-                while(m.find()) {
-                    String variable = m.group();
+            while(m.find()) {
+                String variable = m.group();
 
-                    String vale = variables.get(variable.replace("${", "").replace("}", "").toLowerCase());
-                    if (vale != null) {
-                        while (value.contains(variable)) {
-                            value = value.replace(variable, vale);
-                        }
-
+                String vale = variables.get(variable.replace("${", "").replace("}", "").toLowerCase());
+                if ((vale != null) && (!vale.equals(variable))) {
+                    while (value.contains(variable)) {
+                        value = value.replace(variable, vale);
                     }
+
                 }
+            }
         }
 
         return value;
@@ -132,25 +133,28 @@ public class Tools {
 
 
         Matcher m = p.matcher(expect);
-
         while (m.find()) {
             String variable = m.group();
 
-            if (variable.toLowerCase().equals("{guid}"))
+            if (variable.toLowerCase().equals(String.format("{%s}", Variable.random)))
             {
                 return expect.replace(variable, UUID.randomUUID().toString().replace("-", ""));
             }
-            else if (variable.toLowerCase().equals("{g-u-i-d}"))
+            else if (variable.toLowerCase().equals(String.format("{%s}", Variable.guid)))
             {
                 return expect.replace(variable, UUID.randomUUID().toString());
             }
-            else if (variable.toLowerCase().equals("{emailh}"))
+            else if (variable.toLowerCase().equals(String.format("{%s}", Variable.guid_en_64)))
+            {
+                return expect.replace(variable, Base64.encodeBase64String(UUID.randomUUID().toString().getBytes()).toString());
+            }
+            else if (variable.toLowerCase().equals(String.format("{%s}", Variable.emailh)))
             {
                 return expect.replace(variable, UUID.randomUUID().toString().replace("-", "").substring(0, 25));
             }
-            else if (variable.toLowerCase().startsWith("{date("))
+            else if (variable.toLowerCase().startsWith(String.format("{%s(", Variable.datef)))
             {
-                String format = variable.substring(6, variable.length() - 2);
+                String format = variable.substring(7, variable.length() - 2);
                 String timeStamp = new SimpleDateFormat(format).format(new Date());
 
                 return timeStamp;
@@ -190,20 +194,20 @@ public class Tools {
 
         } finally {
 
-        try {
+            try {
 
-            if (bw != null)
-                bw.close();
+                if (bw != null)
+                    bw.close();
 
-            if (fw != null)
-                fw.close();
+                if (fw != null)
+                    fw.close();
 
-        } catch (IOException ex) {
+            } catch (IOException ex) {
 
-            ex.printStackTrace();
+                ex.printStackTrace();
 
+            }
         }
-    }
     }
 
     public static String readFile(String file) throws IOException {
@@ -219,7 +223,6 @@ public class Tools {
             for (String item : list)
             {
                 try {
-
                     Header head = response.getHeaders(item)[0];
                     res = res + head.toString() + "\n";
                 } catch (Exception e) {
