@@ -53,22 +53,25 @@ public class DataDrivenParallelTests {
 
         if (setup != null)
         {
+            System.out.println(Tools.printFixLineString("", "*"));
+            System.out.println(Tools.printFixLineString(" GLOBAL SETUP", "*"));
+            System.out.println(Tools.printFixLineString("", "*"));
             full = setup.size();
             for (String filename : setup)
             {
-//                System.out.println(filename.substring(filename.indexOf("TestSuite")));
                 TestParser suite = new TestParser(filename);
                 setVariable(filename, suite.getTSVariables());
                 execTestSuite(filename, "global");
             }
+            System.out.println(Tools.printFixLineString("", "*"));
         }
 
         ArrayList<String> files = fll.walk(); //list of files
 
-        System.out.println(">>>> Parse files:");
         if (files != null)
         {
 
+            System.out.println(Tools.printFixLineString("Parse test case repository", "-"));
             for (String filename : files)
             {
                 if (filename.contains(Paths.get("TestSuite","_SetUp").toString()) || filename.contains(Paths.get("TestSuite","_TearDown").toString()))
@@ -99,11 +102,14 @@ public class DataDrivenParallelTests {
                 }
                 System.out.println();
             }
+            System.out.println(Tools.printFixLineString("", "-"));
         }
         else
             System.out.println("NO FILES");
         System.out.println(Tools.printFixLineString("STATS", "*"));
         System.out.println("Files: " + suites.size());
+        System.out.println("Tags: " + System.getenv("REST_APP_TAGS"));
+        System.out.println("URL: " + System.getenv("REST_APP_API_URL"));
         System.out.println(Tools.printFixLineString("RUN", "*"));
     }
 
@@ -115,6 +121,11 @@ public class DataDrivenParallelTests {
 
         if (setup != null)
         {
+            full = setup.size();
+            executed = 0;
+            System.out.println(Tools.printFixLineString("", "*"));
+            System.out.println(Tools.printFixLineString("TEARDOWN", "*"));
+            System.out.println(Tools.printFixLineString("", "*"));
             for (String filename : setup)
             {
                 execTestSuite(filename, "global");

@@ -19,6 +19,15 @@ public class ExpectedFactory {
         else if (type.startsWith("REGEX")) {
             return new REGEXValidation(expect);
         }
+        else if (type.toLowerCase().equals("savebody")) {
+            return new SaveBody(expect);
+        }
+        else if (type.toLowerCase().equals("comparepdf")) {
+            return new PDFComparison(expect);
+        }
+        else if (type.toLowerCase().equals("comparezip")) {
+            return new ZIPComparison(expect);
+        }
         else if (type.startsWith("h")) {
             return new HpathValidation(expect);
         }
