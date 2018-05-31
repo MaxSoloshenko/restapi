@@ -47,31 +47,13 @@ public class DataDrivenParallelTests {
         setVariable("all", api.getGlobalVariables());
 
         Filewalker fll = new Filewalker();
-        ArrayList<String> setup = fll.walk(Paths.get("TestSuite","_SetUp").toString());
-
-        System.out.println(">>>> Read TestSuite/_SetUp/ files:");
-
-        if (setup != null)
-        {
-            System.out.println(Tools.printFixLineString("", "*"));
-            System.out.println(Tools.printFixLineString(" GLOBAL SETUP", "*"));
-            System.out.println(Tools.printFixLineString("", "*"));
-            full = setup.size();
-            for (String filename : setup)
-            {
-                TestParser suite = new TestParser(filename);
-                setVariable(filename, suite.getTSVariables());
-                execTestSuite(filename, "global");
-            }
-            System.out.println(Tools.printFixLineString("", "*"));
-        }
 
         ArrayList<String> files = fll.walk(); //list of files
 
         if (files != null)
         {
-
             System.out.println(Tools.printFixLineString("Parse test case repository", "-"));
+
             for (String filename : files)
             {
                 if (filename.contains(Paths.get("TestSuite","_SetUp").toString()) || filename.contains(Paths.get("TestSuite","_TearDown").toString()))
@@ -107,10 +89,31 @@ public class DataDrivenParallelTests {
         else
             System.out.println("NO FILES");
         System.out.println(Tools.printFixLineString("STATS", "*"));
-        System.out.println("Files: " + suites.size());
-        System.out.println("Tags: " + System.getenv("REST_APP_TAGS"));
-        System.out.println("URL: " + System.getenv("REST_APP_API_URL"));
+        System.out.println("Tests: " + suites.size());
+        System.out.println("Tags: " + System.getenv("JAVELIN_TEST_TAGS"));
+        System.out.println("URL: " + System.getenv("JAVELIN_API_URL"));
         System.out.println(Tools.printFixLineString("RUN", "*"));
+
+        if (suites.size() > 0)
+        {
+            Filewalker stp = new Filewalker();
+            ArrayList<String> setup = stp.walk(Paths.get("TestSuite","_SetUp").toString());
+
+            if (setup != null)
+            {
+                System.out.println(Tools.printFixLineString("", "*"));
+                System.out.println(Tools.printFixLineString(" GLOBAL SETUP", "*"));
+                System.out.println(Tools.printFixLineString("", "*"));
+                full = setup.size();
+                for (String filename : setup)
+                {
+                    TestParser suite = new TestParser(filename);
+                    setVariable(filename, suite.getTSVariables());
+                    execTestSuite(filename, "global");
+                }
+                System.out.println(Tools.printFixLineString("TEST CASES", "*"));
+            }
+        }
     }
 
     @AfterClass(alwaysRun = true)
