@@ -1,20 +1,21 @@
 package com.rest.tests.api.frmw.response.expectation.html;
 
+
 import com.rest.tests.api.frmw.response.expectation.IExpectation;
 import com.rest.tests.api.frmw.response.looking.ILookingObject;
-import com.rest.tests.api.frmw.response.looking.json.LookingForArray;
-import com.rest.tests.api.frmw.response.looking.json.LookingForString;
+import com.rest.tests.api.frmw.response.looking.html.LookingForArray;
+import com.rest.tests.api.frmw.response.looking.html.LookingForString;
 
 import static org.testng.AssertJUnit.assertTrue;
 
 /**
  * Created by msolosh on 3/30/2016.
  */
-public class ExpectationContains implements IExpectation {
+public class hXCONTAINS implements IExpectation {
 
     private Object[] expected;
 
-    public ExpectationContains(String expected) {
+    public hXCONTAINS(String expected) {
         this.expected = expected.substring(1, expected.length() - 1).split(",");
     }
 

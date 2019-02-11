@@ -1,13 +1,14 @@
 package com.rest.tests.api.frmw.request;
 
+import com.rest.tests.api.frmw.settings.Tools;
 import com.rest.tests.api.frmw.testcase.TC;
+import net.minidev.json.JSONObject;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.json.simple.JSONObject;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -60,6 +61,7 @@ public class Patch implements IRequest {
                 put.setEntity(entity);
             }
 
+            put = (HttpPatch) Tools.setHeaderHitId(put);
             res = httpclient.execute(put);
 
         } catch (IOException e) {

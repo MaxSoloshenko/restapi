@@ -1,4 +1,4 @@
-package com.rest.tests.api.frmw.response;
+package com.rest.tests.api.frmw.response.looking;
 
 /**
  * Created by msolosh on 3/29/2016.

@@ -1,13 +1,14 @@
 package com.rest.tests.api.frmw.request;
 
+import com.rest.tests.api.frmw.settings.Tools;
 import com.rest.tests.api.frmw.testcase.TC;
+import net.minidev.json.JSONObject;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.LaxRedirectStrategy;
-import org.json.simple.JSONObject;
 
 import java.io.IOException;
 import java.net.URLDecoder;
@@ -46,10 +47,13 @@ public class Get implements IRequest{
                 Iterator iter = params.keySet().iterator();
                 while (iter.hasNext()){
                     String key = (String)iter.next();
+                    String value = (String)params.get(key);
 
-                    getRequest.addHeader(key, (String)params.get(key));
+                    getRequest.addHeader(key, value);
                 }
             }
+
+            getRequest = (HttpGet) Tools.setHeaderHitId(getRequest);
 
             res = httpclient.execute(getRequest);
 

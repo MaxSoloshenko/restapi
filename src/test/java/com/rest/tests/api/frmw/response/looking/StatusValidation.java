@@ -1,4 +1,4 @@
-package com.rest.tests.api.frmw.response;
+package com.rest.tests.api.frmw.response.looking;
 
 import com.rest.tests.api.frmw.testcase.Response;
 

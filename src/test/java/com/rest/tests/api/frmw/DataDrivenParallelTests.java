@@ -2,16 +2,16 @@ package com.rest.tests.api.frmw;
 
 
 import com.rest.tests.api.frmw.request.RequestFactory;
-import com.rest.tests.api.frmw.response.ExpectedFactory;
-import com.rest.tests.api.frmw.response.IExpectationValidator;
+import com.rest.tests.api.frmw.response.looking.ExpectedFactory;
+import com.rest.tests.api.frmw.response.looking.IExpectationValidator;
 import com.rest.tests.api.frmw.settings.*;
 import com.rest.tests.api.frmw.settings.TestParser;
 import com.rest.tests.api.frmw.testcase.Response;
 import com.rest.tests.api.frmw.testcase.TC;
 //import listeners.ResultListeners;
 import org.apache.http.HttpResponse;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
+import net.minidev.json.JSONObject;
+import net.minidev.json.parser.JSONParser;
 import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

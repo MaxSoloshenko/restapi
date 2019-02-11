@@ -3,13 +3,13 @@ package com.rest.tests.api.frmw.settings;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.minidev.json.JSONArray;
+import net.minidev.json.JSONObject;
+import net.minidev.json.parser.JSONParser;
+import net.minidev.json.parser.ParseException;
 import org.apache.commons.lang3.ArrayUtils;
 import org.ini4j.Profile;
 import org.ini4j.Wini;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -26,19 +26,12 @@ public class Settings {
 
     Wini resource;
     ClassLoader classLoader = getClass().getClassLoader();
+    List<String> response_headers = new ArrayList<String>();
 
     private static final String properties = "Settings/APIUrls.properties";
     private static final String headers = "Settings/logging.frmw";
-    private static final String variables = "Settings/variables.json";
+    private static final String variables = "Variables/variables.json";
     private String[] tags = null;
-    List<String> response_headers;
-
-    Settings(String fileName) throws IOException {
-
-        File file = new File(classLoader.getResource(fileName).getFile());
-
-        this.resource = new Wini(file);
-    }
 
     public Settings() throws IOException {
 
@@ -49,7 +42,7 @@ public class Settings {
                 System.out.println(properties + " does not exist.");
                 System.exit(1);
             }
-            path = URLDecoder.decode(classLoader.getResource(properties).getFile().toString(), "utf-8");
+            path = URLDecoder.decode(new File(classLoader.getResource(properties).getFile()).getAbsolutePath(), "utf-8");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -58,32 +51,32 @@ public class Settings {
 
         this.resource = new Wini(file);
 
-        String tags = System.getenv("REST_APP_TAGS");
+        String tags = System.getenv("JAVELIN_TEST_TAGS");
+
         if (tags != null && tags != "" && !tags.equalsIgnoreCase("all"))
         {
             this.tags = tags.split(",");
         }
 
         try {
-            path = URLDecoder.decode(classLoader.getResource(headers).getFile().toString(), "utf-8");
+            path = URLDecoder.decode(new File(classLoader.getResource(headers).getFile()).getAbsolutePath(), "utf-8");
 
             BufferedReader br = new BufferedReader(new FileReader(path));
             try {
-                    String line = br.readLine();
+                String line = br.readLine();
 
-                    ArrayList<String> list = new ArrayList<String>();
-                    while (line != null) {
+                ArrayList<String> list = new ArrayList<String>();
+                while (line != null) {
 
-                            list.add(line);
-                            line = br.readLine();
-                        }
-                    response_headers = list;
-                } finally {
-                    br.close();
+                    list.add(line);
+                    line = br.readLine();
                 }
-            } catch (Exception e) {
+                response_headers = list;
+            } finally {
+                br.close();
             }
-        response_headers = null;
+        } catch (Exception e) {
+        }
     }
 
     public String[] getTags()
@@ -97,8 +90,8 @@ public class Settings {
 
     public String getKey(String section, String key){
 
-        if (System.getenv("REST_API_" + key) != null)
-            return System.getenv("REST_API_" + key);
+        if (System.getenv("JAVELIN_API_" + key) != null)
+            return System.getenv("JAVELIN_API_" + key);
 
         String url = resource.get(section, key);
 
@@ -173,7 +166,7 @@ public class Settings {
 
     public HashMap<String, String> getTestcaseSettings(String section) throws IOException {
 
-        String path = URLDecoder.decode(classLoader.getResource("Settings/testcase.default").getFile().toString(), "utf-8");
+        String path = URLDecoder.decode(new File(classLoader.getResource("Settings/testcase.default").getFile()).getAbsolutePath(), "utf-8");
         File file = new File(path);
 
         Wini resource = new Wini(file);
@@ -190,18 +183,30 @@ public class Settings {
         ObjectMapper mapper = new ObjectMapper();
 
         try {
-            String vr = URLDecoder.decode(classLoader.getResource(variables).getFile().toString(), "utf-8");
-            JSONParser par = new JSONParser();
-            Object obj = par.parse(new FileReader(vr));
-            JSONObject jsonObject = (JSONObject)obj;
 
-            Variables vars = mapper.readValue(jsonObject.toJSONString(), Variables.class);
-            HashMap<String, String> var = new HashMap<>(vars.getVariables());
+            if (classLoader.getResource("Variables") == null)
+            {
+                System.out.println("Variables folder is missed in resources!");
+                System.exit(1);
+            }
+            String folder = classLoader.getResource("Variables").getPath();
+            File directory = new File(folder);
             HashMap<String, String> fin = new HashMap<>();
 
-            for (String key : var.keySet()) {
-                String value = Tools.generateVariables((String)var.get(key));
-                fin.put(key.toLowerCase(), value);
+            for (final File fileEntry : directory.listFiles()) {
+
+                String path = fileEntry.getAbsolutePath();
+                JSONParser par = new JSONParser();
+                Object obj = par.parse(new FileReader(path));
+                JSONObject jsonObject = (JSONObject)obj;
+
+                Variables vars = mapper.readValue(jsonObject.toJSONString(), Variables.class);
+                HashMap<String, String> var = new HashMap<>(vars.getVariables());
+
+                for (String key : var.keySet()) {
+                    String value = Tools.generateVariables((String)var.get(key));
+                    fin.put(key.toLowerCase(), value);
+                }
             }
 
             return fin;
@@ -211,9 +216,12 @@ public class Settings {
         } catch (JsonMappingException e) {
             e.printStackTrace();
         } catch (IOException e) {
-            System.out.println("Test case global variables file is not found: " + variables);
+            System.out.println("Something wrong with reading variable files in folder Variables.");
             e.printStackTrace();
         } catch (ParseException e) {
+            e.printStackTrace();
+        } catch (NullPointerException e) {
+            System.out.println("Something wrong with reading variable files in folder Variables.");
             e.printStackTrace();
         }
         return null;

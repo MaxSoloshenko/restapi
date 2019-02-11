@@ -8,18 +8,17 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 import com.rest.tests.api.frmw.testcase.TC;
 import com.rest.tests.api.frmw.testcase.TCSuite;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import net.minidev.json.JSONArray;
+import net.minidev.json.JSONObject;
+import net.minidev.json.parser.JSONParser;
 import org.testng.Assert;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by msolosh on 3/25/2016.
@@ -37,47 +36,44 @@ public class TestParser {
             JSONParser par = new JSONParser();
             Object obj = par.parse(new FileReader(filename));
             JSONObject jsonObject = (JSONObject)obj;
-            if ((jsonObject.get("SetUp") != null) || (jsonObject.get("Tests") != null))
-            {
-                if ((jsonObject.get("SetUp") != null))
+            Set<String> items = new HashSet<>(Arrays.asList("SetUp", "Tests"));
+            Iterator<String> iterator = items.iterator();
+            while(iterator.hasNext()) {
+
+                String item = iterator.next();
+
+                if (jsonObject.get(item) != null)
                 {
                     JSONArray res = new JSONArray();
-                    JSONArray arr = (JSONArray) jsonObject.get("SetUp");
+                    JSONArray arr = (JSONArray) jsonObject.get(item);
                     for (Object oj : arr)
                     {
                         JSONObject test = (JSONObject)oj;
                         if (test.get("Template") != null)
                         {
+                            TreeMap content = new TreeMap<>();
+
+                            for (Object e : test.entrySet()) {
+                                Map.Entry entry = (Map.Entry) e;
+                                content.put(String.valueOf(entry.getKey()), entry.getValue());
+                            }
+                            content.remove("Template");
+
                             JSONObject templ = (JSONObject)test.get("Template");
                             JSONObject body = getTemplate(templ);
                             test.remove("Template");
                             test.putAll(body);
+
+                            for (Object e : content.entrySet()) {
+                                Map.Entry entry = (Map.Entry) e;
+                                test.put(String.valueOf(entry.getKey()), entry.getValue());
+                            }
+
                         }
                         res.add(test);
                     }
-                    jsonObject.remove("SetUp");
-                    jsonObject.put("SetUp", res);
-                }
-
-                if ((jsonObject.get("Tests") != null))
-                {
-                    JSONArray res = new JSONArray();
-                    JSONArray arr = (JSONArray) jsonObject.get("Tests");
-                    for (Object oj : arr)
-                    {
-                        JSONObject test = (JSONObject)oj;
-                        if (test.get("Template") != null)
-                        {
-                            JSONObject templ = (JSONObject)test.get("Template");
-                            JSONObject body = getTemplate(templ);
-                            test.remove("Template");
-                            test.putAll(body);
-                        }
-                        res.add(test);
-                    }
-
-                    jsonObject.remove("Tests");
-                    jsonObject.put("Tests", res);
+                    jsonObject.remove(item);
+                    jsonObject.put(item, res);
                 }
             }
 
@@ -93,50 +89,53 @@ public class TestParser {
 
         try
         {
-            Path filePath = Paths.get(getClass().getClassLoader().getResource("Templates").getPath(), (String)template.get("source"));
+
+            Path filePath = Paths.get(new File(getClass().getClassLoader().getResource("Templates").getFile()).getAbsolutePath(), (String)template.get("source"));
+
+            if (!new File(filePath.toString()).exists()) {
+                try {
+                    throw new IOException("File not found " + filePath);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
             JSONParser par = new JSONParser();
             Object obj = par.parse(new FileReader(filePath.toString()));
-            String body  = obj.toString();
 
-            if (template.keySet().size() > 1)
-            {
+            String body = obj.toString();
+
+            if (template.keySet().size() > 1) {
                 Set keysItr = template.keySet();
-                Iterator < String > ir = keysItr.iterator();
-                while(ir.hasNext()) {
+                Iterator<String> ir = keysItr.iterator();
+                while (ir.hasNext()) {
                     String key = ir.next().toString();
                     Object value = template.get(key);
-                    if (key.startsWith("$."))
-                    {
+                    if (key.startsWith("$.")) {
                         DocumentContext doc = JsonPath.parse(body);
-                        try
-                        {
+                        try {
                             doc.read(key);
                             doc.set(key, value);
-                        }
-                        catch(PathNotFoundException e)
-                        {
+                        } catch (PathNotFoundException e) {
                             doc.put(key.substring(0, key.lastIndexOf(".")), key.substring(key.lastIndexOf(".") + 1), value);
                         }
                         body = new Gson().toJson(doc.read("$"));
-                    }
-                    else
-                    {
-                        if (value instanceof Boolean)
-                        {
+                    } else {
+                        if (value instanceof Boolean) {
                             body = body.replace("\"${" + key + "}\"", value.toString());
-                        }
-                        else if (value instanceof String)
-                        {
+                        } else if (value instanceof String) {
                             body = body.replace("${" + key + "}", value.toString());
                         }
                     }
                 }
             }
 
-            Assert.assertNotNull(body, "Template is not found: " + (String)template.get("source"));
+            Assert.assertNotNull(body, "Template is not found: " + (String) template.get("source"));
 
             obj = par.parse(body);
-            return (JSONObject)obj;
+            return (JSONObject) obj;
+        }
+        catch (PathNotFoundException path) {
+            throw new Exception(path.getMessage() + " in source " + (String)template.get("source"));
         }
         catch (Exception e) {
             throw new Exception("File cannot be parsed because of Template missed file: " + (String)template.get("source"));

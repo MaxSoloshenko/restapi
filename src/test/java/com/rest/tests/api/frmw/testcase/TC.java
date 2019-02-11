@@ -1,7 +1,7 @@
 package com.rest.tests.api.frmw.testcase;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import org.json.simple.JSONObject;
+import net.minidev.json.JSONObject;
 
 /**
  * Created by msolosh on 3/25/2016.
@@ -15,8 +15,8 @@ public class TC implements ITestCase{
     public String URL = "";
     public JSONObject[] Expectations = new JSONObject[]{};
     public Object Body = null;
-    public JSONObject  Params = new JSONObject();
-    public JSONObject  Boundary = new JSONObject();
+    public JSONObject Params = new JSONObject();
+    public JSONObject Boundary = new JSONObject();
     public String[] Tags = new String[]{};
     public String FileEntity = "";
     public long Timeout = 0;
@@ -24,7 +24,6 @@ public class TC implements ITestCase{
     public long LoopTimeout = 0;
     public String SourceFile = "";
     public Boolean Enabled = true;
-//    public HashMap<?, ?> Headers;
 
     public void setSourceFile(String sourceFile) {
         SourceFile = sourceFile;
@@ -53,11 +52,11 @@ public class TC implements ITestCase{
     }
 
     public long getTimeout() {
-        return Timeout;
+        return Timeout*1000;
     }
 
     public void setTimeout(long timeout) {
-        Timeout = timeout*1000;
+        Timeout = timeout;
     }
 
     public String[] getTags() {
@@ -76,7 +75,7 @@ public class TC implements ITestCase{
         return Params;
     }
 
-    public void setPARAMS(JSONObject  PARAMS) {
+    public void setPARAMS(JSONObject PARAMS) {
         this.Params = PARAMS;
     }
 

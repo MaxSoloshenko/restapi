@@ -1,8 +1,8 @@
-package com.rest.tests.api.frmw.response;
+package com.rest.tests.api.frmw.response.looking;
 
 import com.rest.tests.api.frmw.response.expectation.html.HpathValidation;
 import com.rest.tests.api.frmw.response.expectation.json.XpathValidation;
-import org.json.simple.JSONObject;
+import net.minidev.json.JSONObject;
 
 /**
  * Created by msolosh on 3/30/2016.
@@ -32,7 +32,7 @@ public class ExpectedFactory {
             return new HpathValidation(expect);
         }
         else if (type.toLowerCase().equals("status")) {
-            Long status = (Long)expect.get("value");
+            Integer status = (Integer)expect.get("value");
             return new StatusValidation(status.intValue());
         }
         else if (type.equalsIgnoreCase("contains")) {

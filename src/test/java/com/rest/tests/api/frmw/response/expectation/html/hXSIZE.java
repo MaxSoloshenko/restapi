@@ -3,23 +3,22 @@ package com.rest.tests.api.frmw.response.expectation.html;
 import com.rest.tests.api.frmw.response.expectation.IExpectation;
 import com.rest.tests.api.frmw.response.looking.ILookingObject;
 
-import static org.hamcrest.Matchers.greaterThan;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Created by msolosh on 3/29/2016.
  */
-public class ExpectationSizeGreater implements IExpectation {
+public class hXSIZE implements IExpectation {
 
     private int expected;
 
-    public ExpectationSizeGreater(String expected) {
+    public hXSIZE(String expected) {
         this.expected = Integer.parseInt(expected);
     }
 
     @Override
     public void validate(ILookingObject detectedArray){
-        assertThat(((Object[])detectedArray.getDetected()).length, greaterThan(expected));
+        assertEquals(expected, ((Object[])detectedArray.getDetected()).length);
     }
 
 }

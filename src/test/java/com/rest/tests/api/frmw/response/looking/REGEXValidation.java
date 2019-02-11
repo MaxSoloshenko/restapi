@@ -1,7 +1,7 @@
-package com.rest.tests.api.frmw.response;
+package com.rest.tests.api.frmw.response.looking;
 
 import com.rest.tests.api.frmw.testcase.Response;
-import org.json.simple.JSONObject;
+import net.minidev.json.JSONObject;
 import org.testng.Assert;
 
 import java.io.IOException;
@@ -17,9 +17,11 @@ public class REGEXValidation implements IExpectationValidator {
     private String regex;
     private String expected;
     private String variable;
+    private String type;
 
     public REGEXValidation(JSONObject expect) {
 
+        this.type = (String) expect.get("type");
         if (((String) expect.get("type")).equalsIgnoreCase("REGEXVARIABLE"))
         {
             this.variable = (String)expect.get("value");
@@ -28,8 +30,10 @@ public class REGEXValidation implements IExpectationValidator {
         {
             this.expected = (String)expect.get("value");
         }
-
-        Assert.assertTrue(expect.containsKey("regex"), "Expectation for REGEX should have key 'regex'.\n" + expect.toJSONString());
+        else if (((String) expect.get("type")).equalsIgnoreCase("REGEXCONTAINS"))
+        {
+            this.expected = "";
+        }
         this.regex = (String)expect.get("regex");
      }
 
@@ -54,7 +58,14 @@ public class REGEXValidation implements IExpectationValidator {
         }
 
         if (variable == null) {
-            Assert.assertEquals(expected, var, "Expected object '" + expected + "' is not equal detected: " + var);
+            if (type.equals("REGEXCONTAINS"))
+            {
+                Assert.assertNotNull(var, "Expected object is not found: " + regex);
+            }
+            else if (type.equals("REGEXEQUAL"))
+            {
+                Assert.assertEquals(expected, var, "Expected object '" + expected + "' is not equal detected: " + var);
+            }
             return null;
         }
         else {

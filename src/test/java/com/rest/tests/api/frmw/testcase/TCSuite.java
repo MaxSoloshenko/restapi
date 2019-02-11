@@ -1,7 +1,7 @@
 package com.rest.tests.api.frmw.testcase;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import org.json.simple.JSONObject;
+import net.minidev.json.JSONObject;
 
 import java.util.HashMap;
 
@@ -53,4 +53,5 @@ public class TCSuite {
         if (variables.size() > 0)
             Variables = variables;
     }
+    public long Priority = 2;
 }

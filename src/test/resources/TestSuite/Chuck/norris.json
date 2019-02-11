@@ -13,9 +13,7 @@
         {
           "type": "JPathCONTAINS",
           "xpath": "$.[*]",
-          "value": [
-            "movie"
-          ]
+          "value": "movie"
         },
         {
           "type": "JPathVARIABLE",

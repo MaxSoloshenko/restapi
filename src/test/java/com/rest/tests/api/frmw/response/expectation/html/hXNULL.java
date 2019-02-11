@@ -2,7 +2,7 @@ package com.rest.tests.api.frmw.response.expectation.html;
 
 import com.rest.tests.api.frmw.response.expectation.IExpectation;
 import com.rest.tests.api.frmw.response.looking.ILookingObject;
-import com.rest.tests.api.frmw.response.looking.json.LookingForArray;
+import com.rest.tests.api.frmw.response.looking.html.LookingForArray;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
@@ -10,7 +10,7 @@ import static org.testng.Assert.assertNull;
 /**
  * Created by msolosh on 3/30/2016.
  */
-public class ExpectationNull implements IExpectation {
+public class hXNULL implements IExpectation {
 
     @Override
     public void validate(ILookingObject detected) {

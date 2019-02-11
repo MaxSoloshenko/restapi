@@ -12,11 +12,11 @@ import static org.testng.Assert.assertNotEquals;
 /**
  * Created by msolosh on 3/30/2016.
  */
-public class ExpectationEqual implements IExpectation {
+public class hXEQUAL implements IExpectation {
 
     private List<String> expected;
 
-    public ExpectationEqual(String expected) {
+    public hXEQUAL(String expected) {
         this.expected = Arrays.asList(expected.substring(1, expected.length() - 1).split("\\s*,\\s*"));
     }
     @Override

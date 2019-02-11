@@ -1,18 +1,19 @@
-package com.rest.tests.api.frmw.response.expectation.json;
+package com.rest.tests.api.frmw.response.expectation.html;
+
 
 import com.rest.tests.api.frmw.response.expectation.IExpectation;
 import com.rest.tests.api.frmw.response.looking.ILookingObject;
 
-import static org.testng.AssertJUnit.assertEquals;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Created by msolosh on 3/30/2016.
  */
-public class ExpectationInteger implements IExpectation {
+public class hXINTEGER implements IExpectation {
 
     private int expected;
 
-    public ExpectationInteger(String expected) {
+    public hXINTEGER(String expected) {
         this.expected = Integer.parseInt(expected);
     }
 

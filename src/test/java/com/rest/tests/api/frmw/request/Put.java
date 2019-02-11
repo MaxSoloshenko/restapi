@@ -1,13 +1,14 @@
 package com.rest.tests.api.frmw.request;
 
+import com.rest.tests.api.frmw.settings.Tools;
 import com.rest.tests.api.frmw.testcase.TC;
+import net.minidev.json.JSONObject;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.json.simple.JSONObject;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -15,7 +16,7 @@ import java.util.Iterator;
 /**
  * Created by msolosh on 3/25/2016.
  */
-public class Put implements IRequest {
+public class Put implements IRequest{
 
     TC test;
 
@@ -59,6 +60,8 @@ public class Put implements IRequest {
                 StringEntity entity = new StringEntity(test.getBody().toString());
                 put.setEntity(entity);
             }
+
+            put = (HttpPut) Tools.setHeaderHitId(put);
 
             res = httpclient.execute(put);
 

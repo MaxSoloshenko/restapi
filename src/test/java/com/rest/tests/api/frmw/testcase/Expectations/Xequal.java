@@ -1,7 +1,7 @@
 package com.rest.tests.api.frmw.testcase.Expectations;
 
+import net.minidev.json.JSONObject;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
-import org.json.simple.JSONObject;
 
 
 /**

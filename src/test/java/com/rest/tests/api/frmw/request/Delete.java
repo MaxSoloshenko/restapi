@@ -1,12 +1,13 @@
 package com.rest.tests.api.frmw.request;
 
+import com.rest.tests.api.frmw.settings.Tools;
 import com.rest.tests.api.frmw.testcase.TC;
+import net.minidev.json.JSONObject;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.json.simple.JSONObject;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -51,6 +52,7 @@ public class Delete implements IRequest {
                 }
             }
 
+            delete = (HttpDelete) Tools.setHeaderHitId(delete);
             res = httpclient.execute(delete);
 
         } catch (IOException e) {

@@ -1,5 +1,6 @@
 package com.rest.tests.api.frmw.response.looking.html;
 
+
 import com.rest.tests.api.frmw.response.looking.ILookingObject;
 
 /**

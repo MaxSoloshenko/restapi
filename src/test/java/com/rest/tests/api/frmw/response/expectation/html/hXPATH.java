@@ -2,7 +2,7 @@ package com.rest.tests.api.frmw.response.expectation.html;
 
 import com.rest.tests.api.frmw.response.expectation.IExpectation;
 import com.rest.tests.api.frmw.response.looking.ILookingObject;
-import com.rest.tests.api.frmw.response.looking.json.LookingForArray;
+import com.rest.tests.api.frmw.response.looking.html.LookingForArray;
 import net.minidev.json.JSONArray;
 
 import static org.testng.Assert.assertEquals;
@@ -10,11 +10,11 @@ import static org.testng.Assert.assertEquals;
 /**
  * Created by msolosh on 3/30/2016.
  */
-public class ExpectationString implements IExpectation {
+public class hXPATH implements IExpectation {
 
     private String expected;
 
-    public ExpectationString(String expected) {
+    public hXPATH(String expected) {
         this.expected = expected;
     }
 

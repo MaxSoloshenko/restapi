@@ -1,20 +1,20 @@
 package com.rest.tests.api.frmw.response.expectation.json;
 
-import com.rest.tests.api.frmw.response.IExpectationValidator;
 import com.rest.tests.api.frmw.response.expectation.IExpectation;
+import com.rest.tests.api.frmw.response.looking.IExpectationValidator;
 import com.rest.tests.api.frmw.response.looking.ILookingObject;
 import com.rest.tests.api.frmw.response.looking.json.LookingFactory;
 import com.rest.tests.api.frmw.settings.Tools;
 import com.rest.tests.api.frmw.testcase.Response;
 import junit.framework.Assert;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import net.minidev.json.JSONObject;
 
-import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.nio.file.FileSystems;
 import java.util.HashMap;
 
 import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
 
 /**
  * Created by msolosh on 3/28/2016.
@@ -22,80 +22,59 @@ import static org.testng.Assert.assertTrue;
 public class XpathValidation implements IExpectationValidator {
 
     private String xpath;
-    private String expected;
+    private Object expected;
     private String type;
+    private String valueFail;
+    private boolean skipOnOther = false;
+    private boolean failOnTruth = false;
+    private Object exp;
 
     public XpathValidation(JSONObject expect) {
+        exp = (Object)expect;
+
         xpath = (String)expect.get("xpath");
         type = (String)expect.get("type");
-        if (expect.get("value") instanceof JSONArray)
-        {
-            expected = ((JSONArray) expect.get("value")).toJSONString();
-        }
-        else if (expect.get("value") instanceof String)
-        {
-            expected = (String)expect.get("value");
-        }
-        else if (expect.get("value") instanceof JSONObject)
-        {
-            expected = ((JSONObject) expect.get("value")).toJSONString();
-        }
-        else if (expect.get("value") instanceof Long)
-        {
-            expected = expect.get("value").toString();
-        }
-        else if (expect.get("value") == null)
-        {
-            expected = null;
-        }
-        else if (expect.get("value") instanceof Boolean)
-        {
-            expected = expect.get("value").toString();
-        }
-        else
-        {
-            System.out.println("***************:" + expect.toJSONString());
-        }
-
+//        valueFail = (String)expect.get("valueFail");
+//        if (expect.get("skipOnOther") != null)
+//        {
+//            this.skipOnOther = (boolean)expect.get("skipOnOther");
+//        }
+//
+//        if (expect.get("failOnTruth") != null)
+//        {
+//            this.failOnTruth = (boolean)expect.get("failOnTruth");
+//        }
+//
+        expected = (Object) expect.get("value");
      }
 
-    private void validation(ILookingObject look) {
+    private void validation(ILookingObject look) throws Exception {
         IExpectation expect = null;
+        String path = this.getClass().getCanonicalName()
+                .substring(0, this.getClass().getCanonicalName().lastIndexOf("."));
 
-        if (type.equalsIgnoreCase("JPathSIZE")) {
-            expect = new ExpectationSize(expected);
-        } else if (type.equalsIgnoreCase("JPathCONTAINS")) {
-            expect = new ExpectationContains(expected);
-        } else if (type.equalsIgnoreCase("JPathEQUAL")) {
-            expect = new ExpectationEqual(expected);
-        } else if (type.equalsIgnoreCase("JPathPATH")) {
-            expect = new ExpectationString(expected);
-        } else if (type.equalsIgnoreCase("JPathBOOLEAN")) {
-            expect = new ExpectationBoolean(expected);
-        } else if (type.equalsIgnoreCase("JPathINTEGER")) {
-            expect = new ExpectationInteger(expected);
+        try {
+
+            Class<?> clazz = Class.forName(path + "." + type);
+//            Constructor<?> constructor = clazz.getConstructor(Object.class, String.class, boolean.class);
+            Constructor<?> constructor = clazz.getConstructor(Object.class);
+            Object instance = constructor.newInstance(exp);
+//            Object instance = constructor.newInstance(expected, valueFail, skipOnOther, failOnTruth);
+            expect = (IExpectation)instance;
         }
-        else if (type.equalsIgnoreCase("JPathNULL")) {
-            expect = new ExpectationNull();
+        catch (InvocationTargetException t)
+        {
+            String msg = t.getTargetException().getMessage();
+            throw new Tools.MyException(String.format("Expected value %s as %s", expected, msg) );
         }
-        else if (type.equalsIgnoreCase("JPathSIZELESS")) {
-            expect = new ExpectationSizeLess(expected);
+        catch (Throwable e) {
+
+            String pathh = this.getClass().getProtectionDomain().getCodeSource().getLocation().getPath() + getClass().getName().replace(".", FileSystems.getDefault().getSeparator());
+            String list = Tools.findClasses(pathh);
+
+            throw new Tools.MyException(String.format("Unknown type of expectation '%s'\n" + "Known expectations:\n" + list, type));
         }
-        else if (type.equalsIgnoreCase("JPathGREATER") || type.equalsIgnoreCase("JPathSIZEGREATER")) {
-            expect = new ExpectationSizeGreater(expected);
-        }
-        else {
-            assertTrue(false, String.format("Unknown jexpectation '%s'\n" +
-                    "Known expectations:\n" +
-                    "'size()'\n" +
-                    "'contains()'\n" +
-                    "'equal()'\n" +
-                    "String value\n" +
-                    "Integer value\n" +
-                    "sizegreaterthan()\n" +
-                    "sizelessthan()", expected));
-        }
-        if ((look != null) || (look == null && expect instanceof ExpectationNull))
+        if ((look != null) || (look == null && expect instanceof JPathNULL))
             expect.validate(look);
         else
         {
@@ -104,37 +83,50 @@ public class XpathValidation implements IExpectationValidator {
     }
 
     @Override
-    public HashMap<String, String> validation(Response response, String file) throws IOException {
+    public HashMap<String, String> validation(Response response, String file) throws Exception {
 
         Object document = response.getDocument();
 
         ILookingObject detectedObject = LookingFactory.getLookingNode(document, xpath);
 
-        if (!type.equalsIgnoreCase("JPathnull"))
+        if (!type.equalsIgnoreCase("JPathnull")
+                && !type.equalsIgnoreCase("JPathvariable"))
             Assert.assertNotNull("Expected JsonPath='" + xpath + "' not found", detectedObject);
 
         if (!type.equalsIgnoreCase("JPathvariable")) {
             validation(detectedObject);
             return null;
         }
+        else if (type.equalsIgnoreCase("JPathEXISTS"))
+        {
+            return null;
+        }
         else {
             HashMap<String, String> hm = new HashMap();
             String var;
 
-            if (detectedObject.getType().equals("Array")) {
-                var = detectedObject.getDetected().toString();
-                if (var.startsWith("[\""))
-                {
-                    var = var.substring(2, var.length() - 2);
+            if (detectedObject != null)
+            {
+
+                if (detectedObject.getType().equals("Array")) {
+                    var = detectedObject.getDetected().toString();
+                    if (var.startsWith("[\""))
+                    {
+                        var = var.substring(2, var.length() - 2);
+                    }
+                    else if (var.equals("[]") || var == null) {
+                        org.springframework.util.Assert.notNull(null, "Nothing found for Jsonpath: " + xpath);
+                    }
                 }
-                else if (var.equals("[]")) {
-                    org.springframework.util.Assert.notNull(null, "Nothing found for Jsonpath: " + xpath);
+                else {
+                    var = detectedObject.getDetected().toString();
                 }
+                hm.put(((String)expected.toString()).toLowerCase(), var);
+                Tools.writeToFile(file," = " + var);
             }
             else
-                var = detectedObject.getDetected().toString();
-            hm.put(((String)expected).toLowerCase(), var);
-            Tools.writeToFile(file," = " + var);
+                org.springframework.util.Assert.notNull(null, "Nothing found for Jsonpath: " + xpath);
+//                hm.put(((String)expected).toLowerCase(), null);
             return hm;
         }
     }

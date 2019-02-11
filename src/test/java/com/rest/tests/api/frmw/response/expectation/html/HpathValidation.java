@@ -1,20 +1,20 @@
 package com.rest.tests.api.frmw.response.expectation.html;
 
-import com.rest.tests.api.frmw.response.IExpectationValidator;
 import com.rest.tests.api.frmw.response.expectation.IExpectation;
+import com.rest.tests.api.frmw.response.looking.IExpectationValidator;
 import com.rest.tests.api.frmw.response.looking.ILookingObject;
 import com.rest.tests.api.frmw.response.looking.html.LookingFactory;
 import com.rest.tests.api.frmw.settings.Tools;
 import com.rest.tests.api.frmw.testcase.Response;
 import junit.framework.Assert;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
+import net.minidev.json.JSONArray;
+import net.minidev.json.JSONObject;
 
-import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.nio.file.FileSystems;
 import java.util.HashMap;
 
 import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
 
 /**
  * Created by msolosh on 3/28/2016.
@@ -44,38 +44,29 @@ public class HpathValidation implements IExpectationValidator {
         }
      }
 
-    private void validation(ILookingObject look) {
+    private void validation(ILookingObject look) throws Exception {
+
         IExpectation expect = null;
+        String path = this.getClass().getCanonicalName()
+                .substring(0, this.getClass().getCanonicalName().lastIndexOf("."));
 
-        if (type.equalsIgnoreCase("hXSIZE")) {
-            expect = new ExpectationSize(expected);
+        try {
+
+            Class<?> clazz = Class.forName(path + "." + type);
+            Constructor<?> constructor = clazz.getConstructor(String.class);
+            Object instance = constructor.newInstance(expected);
+            expect = (IExpectation)instance;
         }
-        else if (type.equalsIgnoreCase("hXCONTAINS")) {
-            expect = new ExpectationContains(expected);
-        }
-        else if (type.equalsIgnoreCase("hXEQUAL")) {
-            expect = new ExpectationEqual(expected);
-        }
-        else if (type.equalsIgnoreCase("hXINTEGER")) {
-            expect = new ExpectationInteger(expected);
-        }
-        else if (type.equalsIgnoreCase("hXNULL")) {
-            expect = new ExpectationNull();
-        }
-        else if (type.equalsIgnoreCase("hXPATH")) {
-            expect = new ExpectationString(expected);
-        }
-        else if (type.equalsIgnoreCase("hXSIZELESS")) {
-            expect = new ExpectationSizeLess(expected);
-        }
-        else if (type.equalsIgnoreCase("hXGREATER") || type.equalsIgnoreCase("hXSIZEGREATER")) {
-            expect = new ExpectationSizeGreater(expected);
-        }
-        else {
-            assertTrue(false, String.format("Unknown jexpectation '%s'"));
+        catch (Throwable e) {
+
+            String pathh = this.getClass().getProtectionDomain().getCodeSource().getLocation().getPath() + getClass().getName().replace(".", FileSystems.getDefault().getSeparator());
+            String list = Tools.findClasses(pathh);
+
+            throw new Tools.MyException(String.format("Unknown type of expectation '%s'\n" + "Known expectations:\n" + list, type));
         }
 
-        if ((look != null) || (look == null && expect instanceof ExpectationNull))
+
+        if ((look != null) || (look == null && expect instanceof hXNULL))
             expect.validate(look);
         else
         {
@@ -84,7 +75,7 @@ public class HpathValidation implements IExpectationValidator {
     }
 
     @Override
-    public HashMap<String, String> validation(Response response, String file) throws IOException {
+    public HashMap<String, String> validation(Response response, String file) throws Exception {
 
         Object document = response.getDocument();
 

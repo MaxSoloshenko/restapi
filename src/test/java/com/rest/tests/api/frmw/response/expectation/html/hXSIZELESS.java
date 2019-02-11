@@ -9,11 +9,11 @@ import static org.junit.Assert.assertThat;
 /**
  * Created by msolosh on 3/29/2016.
  */
-public class ExpectationSizeLess implements IExpectation {
+public class hXSIZELESS implements IExpectation {
 
     private int expected;
 
-    public ExpectationSizeLess(String expected) {
+    public hXSIZELESS(String expected) {
         this.expected = Integer.parseInt(expected);
     }
 

@@ -1,8 +1,8 @@
-package com.rest.tests.api.frmw.response;
+package com.rest.tests.api.frmw.response.looking;
 
 import com.rest.tests.api.frmw.testcase.Response;
+import net.minidev.json.JSONObject;
 import org.apache.http.Header;
-import org.json.simple.JSONObject;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.DataOutputStream;

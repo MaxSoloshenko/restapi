@@ -1,18 +1,17 @@
 package com.rest.tests.api.frmw.settings;
 
 import com.rest.tests.api.frmw.testcase.TC;
+import net.minidev.json.JSONArray;
+import net.minidev.json.JSONObject;
+import net.minidev.json.parser.JSONParser;
+import net.minidev.json.parser.ParseException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import org.apache.http.client.methods.HttpRequestBase;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
@@ -76,7 +75,7 @@ public class Tools {
                         "METHOD: %s\n" ,
                 test.getUrl(),
                 test.getMethod()
-        );
+                );
 
         if (test.getBody() != null)
             res = res + "BODY: " + test.getBody().toString() + "\n";
@@ -97,19 +96,19 @@ public class Tools {
 
         if (value != null)
         {
-            Matcher m = p.matcher(value);
+                Matcher m = p.matcher(value);
 
-            while(m.find()) {
-                String variable = m.group();
+                while(m.find()) {
+                    String variable = m.group();
 
-                String vale = variables.get(variable.replace("${", "").replace("}", "").toLowerCase());
-                if ((vale != null) && (!vale.equals(variable))) {
-                    while (value.contains(variable)) {
-                        value = value.replace(variable, vale);
+                    String vale = variables.get(variable.replace("${", "").replace("}", "").toLowerCase());
+                    if ((vale != null) && (!vale.equals(variable))) {
+                        while (value.contains(variable)) {
+                            value = value.replace(variable, vale);
+                        }
+
                     }
-
                 }
-            }
         }
 
         return value;
@@ -194,20 +193,20 @@ public class Tools {
 
         } finally {
 
-            try {
+        try {
 
-                if (bw != null)
-                    bw.close();
+            if (bw != null)
+                bw.close();
 
-                if (fw != null)
-                    fw.close();
+            if (fw != null)
+                fw.close();
 
-            } catch (IOException ex) {
+        } catch (IOException ex) {
 
-                ex.printStackTrace();
+            ex.printStackTrace();
 
-            }
         }
+    }
     }
 
     public static String readFile(String file) throws IOException {
@@ -250,5 +249,58 @@ public class Tools {
                 return true;
         }
         return false;
+    }
+
+    public static String getHitId(HttpResponse response) {
+        try {
+
+            Header head = response.getHeaders("X-Client_hit_id")[0];
+            if (head != null)
+                return head.toString().substring(17);
+        }
+        catch (Exception e)
+        {
+        }
+        return "null";
+    }
+
+    public static String findClasses(String path) {
+
+        String exclude = path.substring(path.lastIndexOf(FileSystems.getDefault().getSeparator()) + 1);
+
+        String output = "";
+
+        File[] files = new File(path.substring(0, path.lastIndexOf(FileSystems.getDefault().getSeparator()))).listFiles(new FileFilter() {
+            public boolean accept(File pathname) {
+
+                return pathname.getName().toLowerCase().endsWith(".class");
+            }
+        });
+
+        if (files != null) {
+            for (int i = 0; i < files.length; i++) {
+                if (exclude.equals(files[i].getName().substring(0, files[i].getName().indexOf("."))))
+                        continue;
+                output = output + files[i].getName().substring(0, files[i].getName().indexOf(".")) + "\n";
+            }
+        }
+
+        return output;
+    }
+
+    public static class MyException extends Exception {
+        public MyException(String s) {
+            super(s);
+        }
+    }
+
+    public static HttpRequestBase setHeaderHitId(HttpRequestBase request){
+
+
+        String rand = UUID.randomUUID().toString();
+        String value = "api_test_" + rand;
+        request.addHeader("x-client_hit_id", value);
+
+        return request;
     }
 }

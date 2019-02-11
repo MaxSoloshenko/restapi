@@ -1,7 +1,7 @@
-package com.rest.tests.api.frmw.response;
+package com.rest.tests.api.frmw.response.looking;
 
 import com.rest.tests.api.frmw.testcase.Response;
-import org.json.simple.JSONObject;
+import net.minidev.json.JSONObject;
 
 import java.io.IOException;
 import java.util.HashMap;
