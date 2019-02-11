@@ -1,4 +1,4 @@
-# Testing API integration framework
+# API Framawork. V2
 
 ## Requirements
 To be able to operate with framework your system should have next tools:
@@ -125,7 +125,7 @@ Expectation of arrays equality
 
 ```
 {
-  "type":"JPathEQUAL",
+  "type":"JPathArrayEQUAL",
   "xpath":"$.[0].child[?(@.name=~/${filename}/)].status",
   "value":["DONE"]
 }
@@ -135,9 +135,19 @@ Expectation the array contains
 
 ```
 {
-  "type": "JPathCONTAINS",
+  "type": "JPathArrayCONTAINS",
   "xpath": "$.[*].id",
   "value": ["${groupId_1}","${groupId_2}","${groupId_3}"]
+}
+```
+
+Expectation contains
+
+```
+{
+  "type": "JPathCONTAINS",
+  "xpath": "$.[*].id",
+  "value": "${groupId_1}","${groupId_2}","${groupId_3}"
 }
 ```
 
@@ -154,7 +164,7 @@ Expectation the array is bigger than
 
 ```
 {
-  "type": "JPathGREATER",
+  "type": "JPathArraySIZEGREATER",
   "xpath": "$.metadataResponseBean[*]",
   "value": 0
 }
@@ -164,12 +174,21 @@ Expectation the array is fewer than
 
 ```
 {
-  "type": "JPathSIZELESS",
+  "type": "JPathArraySIZELESS",
   "xpath": "$.metadataResponseBean[*]",
   "value": 3
 }
 ```
 
+Expectation the array is equal
+
+```
+{
+  "type": "JPathArraySIZE",
+  "xpath": "$.metadataResponseBean[*]",
+  "value": 3
+}
+```
 
 Expectation the boolean value
 
@@ -181,7 +200,6 @@ Expectation the boolean value
 }
 ```
 
-
 Expectation the integer value
 
 ```
@@ -192,11 +210,30 @@ Expectation the integer value
 }
 ```
 
+Expectation the xpath exists
+
+```
+{
+  "type": "JPathEXISTS",
+  "xpath": "$.metadataResponseBean[0].total"
+}
+```
+
 Expectation the regex in body
 
 ```
 {
   "type": "REGEXEQUAL",
+  "regex": "([a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})",
+  "value": "somevalue"
+}
+```
+
+Expectation the regex in body contains
+
+```
+{
+  "type": "REGEXCONTAINS",
   "regex": "([a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12})",
   "value": "somevalue"
 }
@@ -258,10 +295,12 @@ Variable can be used in URL, Params, Body, Expectations. In next case we can see
 ```
 
 ### What macros are there for variables?
-* {G-U-I-D} - will generate guid
-* {GUID} - will generate guid without "-"
-* {DATE(yyyy-MM-dd'T'HH:mm:ss.SSS'Z')} - will generate current date in given format
-* {emailh} - will generate random string to use as part of email address
+* {GUID_EN_64} - will generate encodeBase64String
+* {GUID} - will generate guid
+* {RANDOM} - will generate random string (guid without "-")
+* {DATEF(yyyy-MM-dd'T'HH:mm:ss.SSS'Z')} - will generate current date in given format
+* {EMAILH} - will generate random string to use as part of email address
+* {EMAILH} - will generate random string to use as part of email address
 
 ### Request template system for tests.
 In order to reduce number of repeating for test cases you are able to keep request template and use it in your cases with variations.
@@ -334,3 +373,4 @@ Full test output you can find in build/resources/TestSuite/YOURCASELOCATION.log
 
 ### How to integrate framework with Jenkins CI?
 As any other TestNG based framework.
+
