@@ -1,4 +1,4 @@
-# API Framawork. V2
+# API Framework. V2
 
 ## Requirements
 To be able to operate with framework your system should have next tools:
