@@ -51,7 +51,7 @@ public class Settings {
 
         this.resource = new Wini(file);
 
-        String tags = System.getenv("JAVELIN_TEST_TAGS");
+        String tags = System.getenv("REST_TEST_TAGS");
 
         if (tags != null && tags != "" && !tags.equalsIgnoreCase("all"))
         {
@@ -90,8 +90,8 @@ public class Settings {
 
     public String getKey(String section, String key){
 
-        if (System.getenv("JAVELIN_API_" + key) != null)
-            return System.getenv("JAVELIN_API_" + key);
+        if (System.getenv("REST_API_" + key) != null)
+            return System.getenv("REST_API_" + key);
 
         String url = resource.get(section, key);
 

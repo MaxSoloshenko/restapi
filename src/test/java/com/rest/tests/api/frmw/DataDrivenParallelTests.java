@@ -90,8 +90,8 @@ public class DataDrivenParallelTests {
             System.out.println("NO FILES");
         System.out.println(Tools.printFixLineString("STATS", "*"));
         System.out.println("Tests: " + suites.size());
-        System.out.println("Tags: " + System.getenv("JAVELIN_TEST_TAGS"));
-        System.out.println("URL: " + System.getenv("JAVELIN_API_URL"));
+        System.out.println("Tags: " + System.getenv("REST_TEST_TAGS"));
+        System.out.println("URL: " + System.getenv("REST_API_URL"));
         System.out.println(Tools.printFixLineString("RUN", "*"));
 
         if (suites.size() > 0)
