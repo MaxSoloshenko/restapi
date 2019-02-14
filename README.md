@@ -247,7 +247,7 @@ There are two types of variables
 * local
 
 Global variables can be used across all test cases
-* user variables.json file in folder TestSuite/Settings
+* user variables.json file in folder TestSuite/Variables
 
 Local variables are set inside of each test suite file. Look at Variables option. Other way to set variable is on fly.
 
