@@ -1,5 +1,4 @@
 # Testing API integration framework. V1
-V2 has other Ecpectation types. Documentation for V2 must be updated yet.
 
 ## Requirements
 To be able to operate with framework your system should have next tools:
